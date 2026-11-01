@@ -5,25 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mirage — Законодательство</title>
 <style>
-:root{--bg:#0b1220;--panel:#111a2e;--line:#243247;--txt:#e5e7eb;--mut:#94a3b8;--acc:#10b981}
-*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);padding:28px clamp(12px,4vw,60px)}
+:root{--bg:#0b1220;--panel:#111a2e;--line:#243247;--txt:#e5e7eb;--mut:#94a3b8;--acc:#10b981;--radius:12px;--font:15px}
+*{box-sizing:border-box}body{margin:0;font:var(--font)/1.55 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);padding:28px clamp(12px,4vw,60px)}
 h1{font-size:34px;margin:0}.sub{color:var(--mut);margin:6px 0 18px}
 .tabs,.chips,.seg,.modes{display:flex;flex-wrap:wrap;gap:8px}
 .tabs button,.chips button,.seg button,.mode-btn{background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:8px 14px;border-radius:999px;cursor:pointer;font:inherit}
 .tabs button.on,.seg button.on{background:var(--acc);border-color:var(--acc);color:#04120c;font-weight:600}
 .mode-btn.on{outline:2px solid var(--acc)}
 .modes{margin:14px 0 10px}
-textarea,#q{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px 14px;font:inherit}
+textarea,#q{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:var(--radius);padding:12px 14px;font:inherit}
 textarea{min-height:84px;resize:vertical}
-.primary{background:var(--acc);border:0;color:#04120c;font-weight:700;padding:10px 22px;border-radius:12px;cursor:pointer}
-.row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.primary{background:var(--acc);border:0;color:#04120c;font-weight:700;padding:10px 22px;border-radius:var(--radius);cursor:pointer}
+.row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap}
 .hint{color:var(--mut);font-size:13px}
 .filters{display:flex;gap:10px;align-items:center;margin:14px 0;flex-wrap:wrap}
 select{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:8px 12px}
-.answer{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:12px;padding:14px 16px;margin:14px 0}
+.answer{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:var(--radius);padding:14px 16px;margin:14px 0}
 .answer .warn{color:#fbbf24;font-size:13px}.answer .note{color:#7dd3fc}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
 .card h3{margin:6px 0}.card .row{margin:0}
 .badge{font-size:12px;padding:3px 8px;border-radius:6px;background:#1d2a44;color:#9ec1ff}
 .num{color:var(--mut);font-size:13px}
@@ -31,6 +31,13 @@ select{background:var(--panel);color:var(--txt);border:1px solid var(--line);bor
 .chip.sev4,.chip.sev5{color:#fca5a5;border-color:#7f1d1d}
 .pen{color:#a7f3d0;margin:4px 0 0}
 footer{margin-top:26px;color:var(--mut);font-size:13px}a{color:#7dd3fc}
+#design-btn{position:fixed;right:18px;bottom:18px;z-index:50;border-radius:999px}
+#design-panel{position:fixed;right:18px;bottom:70px;z-index:50;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;width:270px;display:grid;gap:8px}
+#design-panel h3{margin:0}
+#design-panel label{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--mut);font-size:13px}
+#design-panel input[type=color]{width:44px;height:26px;border:1px solid var(--line);background:none;padding:0}
+#design-panel input[type=range]{width:120px}
+#design-panel .row button{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt);cursor:pointer;font-size:12px}
 </style>
 </head>
 <body>
@@ -42,7 +49,7 @@ footer{margin-top:26px;color:var(--mut);font-size:13px}a{color:#7dd3fc}
   <button class="mode-btn" data-mode="quick">Быстрый поиск</button>
 </div>
 <section id="panel-sit">
-  <textarea id="sit" placeholder="Опиши ситуацию своими словами: снял телефон с прилавка, побежал, поймали у выхода…"></textarea>
+  <textarea id="sit" placeholder="Опиши ситуацию: снял телефон с прилавка, побежал, поймали у выхода…"></textarea>
   <div class="row"><button id="go" class="primary">Разобрать</button><span class="hint">Ctrl+Enter</span></div>
   <div id="chips" class="chips"></div>
   <div id="answer" class="answer" hidden></div>
@@ -63,9 +70,31 @@ footer{margin-top:26px;color:var(--mut);font-size:13px}a{color:#7dd3fc}
   </select>
 </div>
 <main id="results" class="grid"></main>
-<footer>Автоподбор статей по ключевым словам — не заменяет кодекс. Полная редакция:
-<a href="https://forum.grand-rp.su/threads/410588/">ветка на форуме</a></footer>
+<footer>Автоподбор статей по ключевым словам — не заменяет кодекс. Актуальная редакция:
+<a href="https://forum.grand-rp.su/threads/410588/">форум проекта</a></footer>
+
+<button id="design-btn" class="primary">Дизайн</button>
+<div id="design-panel" hidden>
+  <h3>Дизайн сайта</h3>
+  <label>Фон <input id="th-bg" type="color"></label>
+  <label>Панели <input id="th-panel" type="color"></label>
+  <label>Границы <input id="th-line" type="color"></label>
+  <label>Текст <input id="th-txt" type="color"></label>
+  <label>Вторичный <input id="th-mut" type="color"></label>
+  <label>Акцент <input id="th-acc" type="color"></label>
+  <label>Скругление <input id="th-radius" type="range" min="0" max="24"></label>
+  <label>Шрифт <input id="th-font" type="range" min="13" max="18"></label>
+  <div class="row">
+    <button id="th-copy">Скопировать</button>
+    <button id="th-paste">Вставить</button>
+    <button id="th-share">Ссылка</button>
+    <button id="th-reset">Сброс</button>
+  </div>
+  <p class="hint">Хранится в этом браузере. «Ссылка» — ссылка с темой для пацанов: открыл — применилось.</p>
+</div>
+
 <script src="js/data.js"></script>
 <script src="js/search.js"></script>
+<script src="js/theme.js"></script>
 </body>
 </html>
