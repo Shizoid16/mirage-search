@@ -1,4 +1,4 @@
-/* Mirage: локальный разбор ситуаций по реальной базе кодексов. Без API, без денег. */
+/* Mirage v4: разбор ситуации по кускам + обстоятельства + залог + прозрачность. */
 (function () {
   const DATA = window.MIRAGE_DATA || [];
   const CODE_NAME = {uk:"Уголовный кодекс",ak:"Административный кодекс",tk:"Трудовой кодекс",ek:"Этический кодекс",const:"Конституция SA",kk:"Дорожный кодекс",pk:"Процессуальный кодекс",sk:"Судебный кодекс"};
@@ -18,12 +18,22 @@
     дури:["наркотики"], наркотой:["наркотики"], травка:["наркотики"],
     взяточка:["взятка"], откат:["взятка"], подкупил:["взятка"],
     мент:["сотрудник"], коп:["сотрудник"], полицай:["сотрудник"],
-    сел:["управление"], гнал:["превышение"], лихачил:["превышение"],
-    заложника:["заложник"], террорист:["террор"], взорвал:["террор"],
+    гнал:["превышение"], лихачил:["превышение"],
+    заложника:["заложник"], взорвал:["террор"],
     банду:["объединение"], опг:["объединение"], группировка:["объединение"],
-    форму:["форма"], жетон:["удостоверение"], выговор:["взыскание"],
+    жетон:["удостоверение"], выговор:["взыскание"],
     уволили:["увольнение"], сократили:["увольнение"], премию:["премия"]
   };
+  const QUALS = [
+    {re:/ствол|оружи|пушк[ауи]|нож|пистолет|автомат/, t:"применение оружия — отягчающее (ст. 3.4 УК), санкция ближе к верхнему пределу"},
+    {re:/групп|вдво|втро|с пацанами|с друзьями|компанией|сообща/, t:"совершение группой лиц — отягчающее (ст. 3.4 УК)"},
+    {re:/повторн|рецидив|второй раз|уже судим|раньше сидел/, t:"повторность — отягчающее (ст. 3.4 УК)"},
+    {re:/\bкоп[ауоам]?\b|\bмент[ауоам]?\b|сотрудник|полицей|должност|служив/, t:"деяние в отношении сотрудника — смотри главы 10-11 УК"},
+    {re:/жесток|издева|пытал|мучил/, t:"особая жестокость — отягчающее (ст. 3.4 УК)"},
+    {re:/сдался|повинн|признал|раскаял|помог следстви|возместил|компенсир|загладил/, t:"признание / содействие следствию — смягчение до половины санкции (ст. 3.3, 3.12, 3.13 УК)"},
+    {re:/пьян|подшофе|под вещества/, t:"состояние опьянения — суд учитывает как контекст"}
+  ];
+  const NO_BAIL = new Set(["4.1","4.2","4.3","4.6","5.1","5.5","6.8","8.1","8.3","8.5","8.7","8.12","8.14","10.2","10.6","10.9","10.14","11.4","11.6","11.7","11.11","12.1","12.2","12.3","12.4","12.5","13.1"]);
   const norm = s => (s||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-я0-9.\s]/gi," ").replace(/\s+/g," ").trim();
   const tokens = s => norm(s).split(" ").filter(t => t && !STOP.has(t));
   const expand = ts => { const out = new Set(ts); ts.forEach(t => (SYNONYMS[t]||[]).forEach(x => out.add(x))); return [...out]; };
@@ -44,28 +54,39 @@
     const all = new Set([...titleT,...kwT,...textT]);
     return {...a, titleT, kwT, textT, all, allArr:[...all]};
   });
-  function score(a, qts){ let s=0;
+  function score(a, qts){ let s=0; const hits=[];
     for(const raw of qts) for(const t of expand([raw])) {
-      if(a.titleT.includes(t)) s+=5;
-      else if(a.kwT.includes(t)) s+=3;
-      else if(a.textT.includes(t)) s+=1;
-      else if(fuzzy(t,a.allArr)) s+=2;
-    } return s; }
+      if(a.titleT.includes(t)){ s+=5; hits.push(t); }
+      else if(a.kwT.includes(t)){ s+=3; hits.push(t); }
+      else if(a.textT.includes(t)){ s+=1; hits.push(t); }
+      else { const f=fuzzy(t,a.allArr); if(f){ s+=2; hits.push(f); } }
+    } return {s, hits}; }
   const INTENTS = [
     {id:"fine",   re:/штраф|сколько денег|бабл|денег/},
     {id:"months", re:/месяц|срок|грозит|наказани|сажают|тюрьм|что будет/},
     {id:"bail",   re:/залог/},
     {id:"mitig",  re:/признани|помощь следстви|смягча|раскаив/}
   ];
-  const INTENT_NOTE = {bail:"uk-3-14", mitig:"uk-3-12"};
+  const INTENT_NOTE = {mitig:"uk-3-12"};
   const filtered = f => ART.filter(a =>
     (!f.code || a.code===f.code) &&
     (f.scope==="any" || a.scope===f.scope || a.scope==="B") &&
     (!f.wanted || a.severity===f.wanted));
-  function analyze(q, f){
-    const nq = norm(q), qts = tokens(nq);
-    const scored = filtered(f).map(a => ({a, s:score(a,qts)})).filter(x=>x.s>0).sort((x,y)=>y.s-x.s).slice(0,4);
-    return {scored, intents: INTENTS.filter(i=>i.re.test(nq)).map(i=>i.id)};
+  function analyzeAll(raw, f){
+    const clauses = raw.split(/[;,\n]+|\s+и\s+|\s+плюс\s+|\s+а также\s+/i).map(s=>s.trim()).filter(s=>tokens(s).length>0);
+    const crimes=[]; const seen={};
+    (clauses.length?clauses:[raw]).forEach(cl=>{
+      const qts=tokens(cl);
+      const top=filtered(f).map(a=>({a,r:score(a,qts)})).filter(x=>x.r.s>=3).sort((x,y)=>y.r.s-x.r.s)[0];
+      if(top&&!seen[top.a.id]){seen[top.a.id]=1;crimes.push(top);}
+    });
+    if(!crimes.length){
+      const qts=tokens(raw);
+      crimes.push(...filtered(f).map(a=>({a,r:score(a,qts)})).filter(x=>x.r.s>0).sort((x,y)=>y.r.s-x.r.s).slice(0,3));
+    }
+    const nq=norm(raw);
+    return {crimes:crimes.slice(0,4), intents:INTENTS.filter(i=>i.re.test(nq)).map(i=>i.id),
+            quals:QUALS.filter(q=>q.re.test(nq)), multi:(clauses.length>1&&crimes.length>1)};
   }
   function quick(q, f){
     const list = filtered(f), nq = norm(q);
@@ -73,33 +94,40 @@
     const qts = tokens(nq);
     const qn = nq.replace(/[, ]/g,".");
     const num = (qn.match(/(\d+\.\d+|\d+)/)||[])[1];
-    return list.map(a => ({a, s:score(a,qts)}))
-      .filter(x => (num && (x.a.num===num || x.a.num.startsWith(num+"."))) || norm(x.a.title).includes(nq) || x.s>=3)
-      .sort((x,y)=>y.s-x.s).map(x=>x.a);
+    return list.map(a => ({a, r:score(a,qts)}))
+      .filter(x => (num && (x.a.num===num || x.a.num.startsWith(num+"."))) || norm(x.a.title).includes(nq) || x.r.s>=3)
+      .sort((x,y)=>y.r.s-x.r.s).map(x=>x.a);
   }
   const conf = r => Math.min(95, Math.round(100*(1 - 1/(1 + r.s/4))));
-  function penaltyBlock(a, intents){
+  function penaltyLine(a){
     const p=[];
     if(a.months) p.push("лишение свободы <b>до "+a.months[1]+" мес.</b>");
     if(a.fine)   p.push("штраф <b>"+money(a.fine[1])+" $</b>");
-    if(!p.length) return "<p>Санкция — см. текст статьи в кодексе.</p>";
-    let head = "Санкция: ";
-    if(intents.includes("fine") && a.fine) head = "Про деньги: ";
-    if(intents.includes("months") && a.months) head = "Срок: ";
-    return "<p>"+head+p.join(" + ")+".</p>";
+    return p.length? p.join(" + ") : "санкция — см. текст статьи";
   }
   function compose(res, raw){
-    if(!res.scored.length)
-      return "<p>По описанию ["+esc(raw)+"] ничего не нашлось. Переформулируй проще (украл телефон, побил, сел пьяным, мат на улице) или перейди в быстрый поиск по номеру статьи.</p>";
-    const top=res.scored[0], rest=res.scored.slice(1), a=top.a, out=[];
-    out.push("<p>Похоже на <b>["+esc(a.title)+"]</b> — ст. "+a.num+", "+(CODE_NAME[a.code]||a.code)+", совпадение ~"+conf(top)+"%.</p>");
-    out.push(penaltyBlock(a, res.intents));
-    if(a.severity>=1) out.push("<p>Приоритет розыска: <b>"+a.severity+"</b> (тяжесть: "+SEV[a.severity]+", потолок до "+SEV_MAX[a.severity]+" мес. по ст. 1.4 УК). Область: "+(a.scope==="F"?"федеральная (F) — разбирают федералы":a.scope==="R"?"региональная (R) — разбирают все уполномоченные органы":"общая")+".</p>");
-    if(rest.length) out.push("<p>Также усматривается: "+rest.map(r=>"["+esc(r.a.title)+"] (ст. "+r.a.num+", ~"+conf(r)+"%)").join("; ")+" — проверь, есть ли в описании их признаки.</p>");
+    if(!res.crimes.length)
+      return "<p>По описанию ["+esc(raw)+"] ничего не нашлось. Переформулируй проще (украл телефон, побил, мат на улице) или перейди в быстрый поиск по номеру статьи.</p>";
+    const out=[]; const top=res.crimes[0], a=top.a;
+    out.push("<p><b>1. Квалификация.</b> Похоже на <b>["+esc(a.title)+"]</b> — ст. "+a.num+", "+(CODE_NAME[a.code]||a.code)+", совпадение ~"+conf(top.r)+"%.</p>");
+    out.push("<p class=\"why\">Поймано по словам: "+[...new Set(top.r.hits)].slice(0,8).join(", ")+"</p>");
+    out.push("<p><b>2. Санкция.</b> "+penaltyLine(a)+".</p>");
+    if(a.severity>=1) out.push("<p><b>3. Розыск и область.</b> Приоритет розыска <b>"+a.severity+"</b> (тяжесть: "+SEV[a.severity]+", потолок до "+SEV_MAX[a.severity]+" мес., ст. 1.4 УК). Область: "+(a.scope==="F"?"федеральная (F) — разбирают федералы":a.scope==="R"?"региональная (R) — разбирают все уполномоченные органы":"общая")+".</p>");
+    if(res.crimes.length>1){
+      out.push("<p><b>4. Совокупность (ст. 1.6 УК).</b> В описании усматриваются и другие составы: "+res.crimes.slice(1).map(c=>"["+esc(c.a.title)+"] ст. "+c.a.num+" ("+penaltyLine(c.a)+")").join("; ")+". Ответственность — по каждой статье отдельно.</p>");
+    }
+    if(res.quals.length) out.push("<p><b>5. Обстоятельства.</b> "+res.quals.map(q=>q.t).join("; ")+".</p>");
+    if(res.intents.includes("bail")){
+      const c=res.crimes.find(x=>x.a.severity>=1);
+      if(c) out.push("<p class=\"note\"><b>Про залог:</b> "+(NO_BAIL.has(c.a.num)
+        ? "НЕТ — ст. "+c.a.num+" входит в список исключений (ст. 3.14 УК): залог не применяется, только стража и суд."
+        : "ДА — ст. "+c.a.num+" не в списке исключений; залог оформляет только лицензированный адвокат (ст. 3.14 УК, ст. 5.18 Конституции).")+"</p>");
+      else out.push("<p class=\"note\"><b>Про залог:</b> см. ст. 3.14 УК — возможен через лицензированного адвоката по статьям не из списка исключений.</p>");
+    }
     for(const id of res.intents){ const n=INTENT_NOTE[id]; if(!n) continue;
-      const ia = ART.find(x=>x.id===n);
-      if(ia) out.push("<p>По смежному вопросу: ст. "+ia.num+" ["+esc(ia.title)+"]: "+esc(ia.text)+"</p>"); }
-    out.push("<p>Это автоподбор статей по ключевым словам, а не консультация юриста. Точная формулировка — в кодексе на форуме.</p>");
+      const ia=ART.find(x=>x.id===n);
+      if(ia) out.push("<p class=\"note\">По смежному вопросу: ст. "+ia.num+" ["+esc(ia.title)+"]: "+esc(ia.text)+"</p>"); }
+    out.push("<p class=\"warn\">Это автоподбор статей по ключевым словам, а не консультация юриста. Точная формулировка — в кодексе на форуме.</p>");
     return out.join("");
   }
   const $ = s => document.querySelector(s);
@@ -108,17 +136,23 @@
   const card = a => "<article class=\"card\"><div class=\"row\"><span class=\"badge\">"+(CODE_NAME[a.code]||a.code)+"</span><span class=\"num\">ст. "+a.num+"</span>"+(a.scope!=="B"?"<span class=\"chip\">"+a.scope+"</span>":"")+(a.severity>=1?"<span class=\"chip sev"+a.severity+"\">розск "+a.severity+"</span>":"")+"</div><h3>"+esc(a.title)+"</h3><p>"+esc(a.text)+"</p>"+(a.months?"<p class=\"pen\">Срок: до "+a.months[1]+" мес.</p>":"")+(a.fine?"<p class=\"pen\">Штраф: "+money(a.fine[1])+" $</p>":"")+"</article>";
   function renderGrid(){
     const g = $("#results");
-    if(state.mode==="sit" && lastRes){ g.innerHTML = lastRes.scored.map(x=>card(x.a)).join(""); return; }
+    if(state.mode==="sit" && lastRes){ g.innerHTML = lastRes.crimes.map(x=>card(x.a)).join(""); return; }
     const list = state.mode==="quick" ? quick($("#q").value, state) : filtered(state);
     g.innerHTML = list.length ? list.map(card).join("")
-      : "<p class=\"hint\">Пусто: в этом кодексе база ещё наполняется (скинь PDF — добавим) или фильтры слишком строгие.</p>";
+      : "<p class=\"hint\">Пусто: в этом кодексе база ещё наполняется или фильтры слишком строгие.</p>";
   }
   function runSit(){
     const raw = $("#sit").value.trim(); if(!raw) return;
-    lastRes = analyze(raw, state);
+    lastRes = analyzeAll(raw, state);
     const box = $("#answer"); box.hidden = false; box.innerHTML = compose(lastRes, raw);
+    const fol = $("#follow"); fol.innerHTML = "";
+    lastRes.crimes.slice(1,4).forEach(c=>{
+      const b=document.createElement("button"); b.textContent="Разобрать: "+c.a.title;
+      b.onclick=function(){ $("#sit").value=c.a.title; runSit(); }; fol.appendChild(b); });
     renderGrid(); box.scrollIntoView({behavior:"smooth", block:"nearest"});
+    if(window.MirageDB) MirageDB.log(raw, lastRes.crimes.length? lastRes.crimes[0].a.num+" "+lastRes.crimes[0].a.title : "—");
   }
+  window.MirageRun = function(t){ $("#sit").value=t; runSit(); };
   const tabs = $("#codes");
   [["", "Все"]].concat(Object.entries(CODE_NAME)).forEach(function(e){
     const b=document.createElement("button"); b.textContent=e[1]; b.dataset.code=e[0];
