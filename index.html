@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mirage — Законодательство</title>
+<style>
+:root{--bg:#0b1220;--panel:#111a2e;--line:#243247;--txt:#e5e7eb;--mut:#94a3b8;--acc:#10b981}
+*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);padding:28px clamp(12px,4vw,60px)}
+h1{font-size:34px;margin:0}.sub{color:var(--mut);margin:6px 0 18px}
+.tabs,.chips,.seg,.modes{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button,.chips button,.seg button,.mode-btn{background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:8px 14px;border-radius:999px;cursor:pointer;font:inherit}
+.tabs button.on,.seg button.on{background:var(--acc);border-color:var(--acc);color:#04120c;font-weight:600}
+.mode-btn.on{outline:2px solid var(--acc)}
+.modes{margin:14px 0 10px}
+textarea,#q{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px 14px;font:inherit}
+textarea{min-height:84px;resize:vertical}
+.primary{background:var(--acc);border:0;color:#04120c;font-weight:700;padding:10px 22px;border-radius:12px;cursor:pointer}
+.row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.hint{color:var(--mut);font-size:13px}
+.filters{display:flex;gap:10px;align-items:center;margin:14px 0;flex-wrap:wrap}
+select{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:8px 12px}
+.answer{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:12px;padding:14px 16px;margin:14px 0}
+.answer .warn{color:#fbbf24;font-size:13px}.answer .note{color:#7dd3fc}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h3{margin:6px 0}.card .row{margin:0}
+.badge{font-size:12px;padding:3px 8px;border-radius:6px;background:#1d2a44;color:#9ec1ff}
+.num{color:var(--mut);font-size:13px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--mut)}
+.chip.sev4,.chip.sev5{color:#fca5a5;border-color:#7f1d1d}
+.pen{color:#a7f3d0;margin:4px 0 0}
+footer{margin-top:26px;color:var(--mut);font-size:13px}a{color:#7dd3fc}
+</style>
+</head>
+<body>
+<h1>Mirage</h1>
+<p class="sub">Законодательство штата Сан-Андреас · Nova RP · поиск без ИИ и без API</p>
+<nav id="codes" class="tabs"></nav>
+<div class="modes">
+  <button class="mode-btn on" data-mode="sit">Разбор ситуации</button>
+  <button class="mode-btn" data-mode="quick">Быстрый поиск</button>
+</div>
+<section id="panel-sit">
+  <textarea id="sit" placeholder="Опиши ситуацию своими словами: снял телефон с прилавка, побежал, поймали у выхода…"></textarea>
+  <div class="row"><button id="go" class="primary">Разобрать</button><span class="hint">Ctrl+Enter</span></div>
+  <div id="chips" class="chips"></div>
+  <div id="answer" class="answer" hidden></div>
+</section>
+<section id="panel-quick" hidden>
+  <input id="q" type="text" placeholder="Поиск: номер статьи, слово, наказание…">
+</section>
+<div class="filters">
+  <div id="scope" class="seg">
+    <button data-scope="any" class="on">Любой</button>
+    <button data-scope="F">Федеральные (F)</button>
+    <button data-scope="R">Региональные (R)</button>
+  </div>
+  <select id="wanted">
+    <option value="0">Розыск: любой</option>
+    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+    <option value="4">4</option><option value="5">5</option>
+  </select>
+</div>
+<main id="results" class="grid"></main>
+<footer>Автоподбор статей по ключевым словам — не заменяет кодекс. Полная редакция:
+<a href="https://forum.grand-rp.su/threads/410588/">ветка на форуме</a></footer>
+<script src="js/data.js"></script>
+<script src="js/search.js"></script>
+</body>
+</html>
