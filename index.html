@@ -109,7 +109,7 @@ footer a{color:var(--acct)}
 <div class="page">
 <header class="top">
   <div class="brand"><span id="ico">⚖️</span><div><h1 id="ttl">Mirage</h1><p class="sub" id="sub">Законодательство штата Сан-Андреас · Nova RP</p></div></div>
-  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button></nav>
+  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
 </header>
 <main id="v-laws">
   <div class="hero">
@@ -124,6 +124,7 @@ footer a{color:var(--acct)}
   <section id="fav-list" aria-live="polite"></section>
 </main>
 <main id="v-design" hidden></main>
+<main id="v-admin" hidden><div class="hero"><h2 style="margin:0 0 4px;font-size:20px">⚖️ Управление законодательством</h2><p class="sub">Добавление, редактирование и удаление материалов Mirage.</p></div><section class="account-panel"><div class="account-actions"><button class="account-btn" id="admin-add">Добавить статью</button><button class="account-btn secondary" id="admin-import">Импортировать текущую базу статей</button><button class="account-btn secondary" id="admin-refresh">Обновить список</button></div><p class="account-note" id="admin-note">Проверяем права доступа…</p><div id="admin-editor" hidden><form id="admin-form" class="account-form"><input type="hidden" id="e-id"><label>Кодекс / категория<input id="e-category" required placeholder="uk, dk, pk, sd, td, et, ks"></label><label>Раздел<input id="e-group" placeholder="Например: Гл. 4 · Жизнь и здоровье"></label><label>Номер статьи<input id="e-code" required></label><label>Название<input id="e-title" required></label><label>Текст<textarea id="e-body" rows="5"></textarea></label><label>Наказание / срок<input id="e-penalty"></label><label>Штраф<input id="e-fine"></label><label>Уровень розыска<input id="e-wanted"></label><label>Тип дела (F/R)<input id="e-kind" maxlength="1"></label><div class="account-actions"><button class="account-btn" type="submit">Сохранить</button><button class="account-btn secondary" type="button" id="admin-cancel">Отмена</button></div></form></div></section><section id="admin-entries"></section></main>
 <main id="v-account" hidden>
   <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Личный кабинет</h2><p class="sub">Аккаунт, профиль и персональные настройки Mirage.</p></div>
   <div class="account-wrap">
@@ -448,11 +449,12 @@ $("#v-design").addEventListener("click",async e=>{
 });
 // ===== переключатель вкладок =====
 function show(v){
-  if(!["laws","favorites","design","account"].includes(v))v="laws";
+  if(!["laws","favorites","design","account","admin"].includes(v))v="laws";
   document.querySelectorAll(".views button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v)));
-  ["laws","favorites","design","account"].forEach(k=>$("#v-"+k).hidden=v!==k);
+  ["laws","favorites","design","account","admin"].forEach(k=>$("#v-"+k).hidden=v!==k);
   if(v==="favorites"&&window.MirageCloud)window.MirageCloud.renderFavorites();
   if(v==="account"&&window.MirageCloud)window.MirageCloud.renderAccount();
+  if(v==="admin")window.MirageAdmin?.open();
   scrollTo(0,0);
 }
 document.querySelector(".views").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.v)});
@@ -594,6 +596,7 @@ apply();sync();drawSaved();render();
     const user=await parseResponse(response);
     state.session.user=user;
     saveSession(state.session);
+    window.dispatchEvent(new Event("mirage-auth-changed"));
     state.loadingProfile=true;
     state.profile=await fetchProfile();
     if(state.profile.settings && Object.keys(state.profile.settings).length) {
@@ -607,7 +610,7 @@ apply();sync();drawSaved();render();
   }
   async function signOut() {
     try { if(state.session?.access_token) await fetch(`${apiBase()}/auth/v1/logout`, {method:"POST",headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":`Bearer ${state.session.access_token}`}}); } catch (_) {}
-    clearSession(); render(); renderFavorites(); renderAccount();
+    clearSession(); window.dispatchEvent(new Event("mirage-auth-changed")); render(); renderFavorites(); renderAccount();
     note("Вы вышли из аккаунта.","success");
   }
   function queueSettingsSave() {
@@ -706,6 +709,28 @@ apply();sync();drawSaved();render();
     renderAccount(); renderFavorites(); render();
   }
   init();
+})();
+</script>
+
+
+<script>
+(() => {
+ const $=s=>document.querySelector(s), URL_BASE="https://sarfipfoetkttqpwcmdu.supabase.co", KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+ let rows=[], admin=false;
+ const note=t=>{$("#admin-note").textContent=t};
+ const session=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}};
+ const headers=(write=false)=>{const s=session();return {apikey:KEY,Authorization:`Bearer ${s?.access_token||KEY}`,...(write?{"Content-Type":"application/json","Prefer":"return=representation"}:{})}};
+ async function req(path,opts={}){const r=await fetch(`${URL_BASE}/rest/v1/${path}`,{...opts,headers:{...headers(!!opts.body),...(opts.headers||{})}});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch(_){d=t}if(!r.ok)throw Error(d?.message||d?.details||d?.hint||`Ошибка ${r.status}`);return d}
+ async function check(){const s=session();admin=false;if(s?.access_token){try{const r=await fetch(`${URL_BASE}/auth/v1/user`,{headers:headers()});const u=await r.json();admin=u?.app_metadata?.role==="admin"}catch(_){}}$("#admin-tab").hidden=!admin;if(!admin&&location.hash==="#admin")show("account");return admin}
+ async function loadPublicEntries(){try{const data=await req("legal_entries?select=*&order=category.asc,code.asc");if(data&&data.length){const mapped=data.map(x=>({c:x.category,g:x.group_name,n:x.code,t:x.title,x:x.body,p:"",f:x.kind,w:x.wanted,m:x.penalty,fn:x.fine}));IDX.splice(0,IDX.length,...mapped);IDX.forEach(it=>{it.h=norm([it.n,it.t,it.x,it.p,it.m,it.fn?"штраф "+it.fn:"",it.w?"розыск "+it.w:"",it.g,NAME[it.c]].join(" "));it.hn=it.h.replace(/(\d)[\s\u00a0\u202f](?=\d{3})/g,"$1")});render();}}catch(e){console.warn("Mirage legal entries:",e.message)}}
+ async function load(){if(!await check()){note("Нет прав администратора. Войдите в назначенный администраторский аккаунт.");return}try{rows=await req("legal_entries?select=*&order=category.asc,code.asc");draw();note(`Загружено записей: ${rows.length}`)}catch(e){note("Ошибка загрузки: "+e.message)}}
+ function draw(){const root=$("#admin-entries");root.innerHTML=rows.map(x=>`<article class="card"><div class="card-head"><h2>${esc(x.code)} · ${esc(x.title)}</h2><span class="tag">${esc(x.category)}</span></div><p>${esc(x.body).slice(0,280)}${x.body.length>280?"…":""}</p><div class="account-actions"><button class="account-btn secondary" data-edit="${x.id}">Изменить</button><button class="account-btn secondary" data-delete="${x.id}">Удалить</button></div></article>`).join("")||'<p class="empty">В таблице пока нет статей. Нажми «Импортировать текущую базу статей».</p>'}
+ function form(x={}){$("#admin-editor").hidden=false;for(const [id,k] of [["e-id","id"],["e-category","category"],["e-group","group_name"],["e-code","code"],["e-title","title"],["e-body","body"],["e-penalty","penalty"],["e-fine","fine"],["e-wanted","wanted"],["e-kind","kind"]])$("#"+id).value=x[k]??"";scrollTo({top:0,behavior:"smooth"})}
+ async function save(e){e.preventDefault();if(!await check())return;const x={};for(const [id,k] of [["e-category","category"],["e-group","group_name"],["e-code","code"],["e-title","title"],["e-body","body"],["e-penalty","penalty"],["e-fine","fine"],["e-wanted","wanted"],["e-kind","kind"]])x[k]=$("#"+id).value.trim();x.updated_at=new Date().toISOString();const id=$("#e-id").value;try{if(id)await req(`legal_entries?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(x)});else await req("legal_entries",{method:"POST",body:JSON.stringify(x)});$("#admin-editor").hidden=true;await load();note("Изменения сохранены.")}catch(err){note("Не удалось сохранить: "+err.message)}}
+ async function importBase(){if(!await check())return;if(!confirm("Импортировать встроенные статьи в базу? Существующие записи с теми же кодексом и номером будут обновлены."))return;try{const data=IDX.map(it=>({category:it.c,group_name:it.g,code:it.n,title:it.t,body:[it.x,it.p].filter(Boolean).join("\n"),penalty:it.m||"",fine:it.fn||"",wanted:it.w||"",kind:it.f||""}));for(let i=0;i<data.length;i+=100)await req("legal_entries?on_conflict=category,code",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(data.slice(i,i+100))});await load();note(`Импорт завершён: ${data.length} записей.`)}catch(e){note("Ошибка импорта: "+e.message)}}
+ $("#admin-add").addEventListener("click",()=>form());$("#admin-cancel").addEventListener("click",()=>$("#admin-editor").hidden=true);$("#admin-form").addEventListener("submit",save);$("#admin-import").addEventListener("click",importBase);$("#admin-refresh").addEventListener("click",load);
+ $("#admin-entries").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;const x=rows.find(x=>String(x.id)===b.dataset.edit);if(x)form(x);if(b.dataset.delete){const x=rows.find(x=>String(x.id)===b.dataset.delete);if(!x||!confirm(`Удалить статью ${x.code}?`))return;try{await req(`legal_entries?id=eq.${x.id}`,{method:"DELETE"});await load()}catch(err){note("Ошибка удаления: "+err.message)}}});
+ window.MirageAdmin={open:load};window.addEventListener("mirage-auth-changed",()=>{check()});loadPublicEntries();
 })();
 </script>
 
