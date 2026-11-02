@@ -419,7 +419,7 @@ $("#v-design").innerHTML=`<div class="hero"><h2 style="margin:0 0 4px;font-size:
 <span class="f">Вставьте чужой код и примените</span><textarea id="imp" placeholder="MIRAGE1:..." aria-label="Код для импорта"></textarea>
 <div class="row" style="margin-top:8px"><button class="chip" id="ia">Применить код</button><button class="chip" id="rs">Сбросить к стандартному</button></div>
 <p class="ok" id="msg" aria-live="polite"></p>
-<span class="f">Мои стили в этом браузере</span><div class="row"><input id="sn" placeholder="Название стиля" maxlength="30"><button class="chip" id="ss">Сохранить текущий</button></div><div id="sl" style="margin-top:8px"></div></section>
+<span class="f">Мои стили</span><div class="row"><input id="sn" placeholder="Название стиля" maxlength="30"><button class="chip" id="ss">Сохранить текущий</button></div><div id="sl" style="margin-top:8px"></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h3>Общий каталог тем</h3><p class="lbl">Публикуйте свои темы, чтобы другие могли их применить. Для публикации нужен аккаунт. Применение чужой темы меняет оформление только у вас.</p><div class="row" style="margin-top:8px"><button class="chip" id="publish-style">Опубликовать текущую тему</button><button class="chip" id="refresh-shared">Обновить каталог</button></div><div id="shared-style-list" style="margin-top:10px"></div></section>
 </div>`;
 let MSG=0;const say=t=>{$("#msg").textContent=t;clearTimeout(MSG);MSG=setTimeout(()=>$("#msg").textContent="",2500)};
 const SAVED=()=>{try{return JSON.parse(localStorage.getItem("mirage_styles"))||[]}catch(_){return[]}};
@@ -447,6 +447,30 @@ $("#v-design").addEventListener("click",async e=>{
   if(b.dataset.load!==undefined){const x=SAVED()[b.dataset.load];if(x)setS(x.s);return}
   if(b.dataset.del!==undefined){const L=SAVED();L.splice(+b.dataset.del,1);try{localStorage.setItem("mirage_styles",JSON.stringify(L))}catch(_){}window.MirageCloud?.saveStyles(L);drawSaved()}
 });
+async function drawSharedStyles() {
+  const root=$("#shared-style-list"); if(!root)return;
+  root.innerHTML='<span class="lbl">Загружаем каталог…</span>';
+  if(!window.MirageCloud?.loadSharedStyles){root.textContent="Каталог недоступен.";return}
+  try {
+    const list=await window.MirageCloud.loadSharedStyles();
+    root.innerHTML=list.length?list.map(x=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><div><b>${esc(x.name)}</b><div class="lbl">Автор: ${esc(x.author_name||"Пользователь")}</div></div><div class="row"><button class="chip" data-shared-apply="${esc(x.id)}">Применить</button>${window.MirageCloud.currentUserId()===x.user_id?`<button class="chip" data-shared-delete="${esc(x.id)}">Удалить</button>`:""}</div></div>`).join(""):'<span class="lbl">Пока никто не опубликовал темы. Будь первым!</span>';
+    root.dataset.items=JSON.stringify(list);
+  } catch(e){root.textContent="Не удалось загрузить каталог: "+e.message}
+}
+$("#publish-style").addEventListener("click",async()=>{
+  if(!window.MirageCloud?.isLoggedIn()){say("Чтобы публиковать темы, войдите в аккаунт.");show("account");return}
+  const name=$("#sn").value.trim()||prompt("Название темы:"); if(!name)return;
+  try{await window.MirageCloud.publishSharedStyle(name,S);$("#sn").value="";say("Тема опубликована в общем каталоге.");drawSharedStyles()}catch(e){say("Ошибка публикации: "+e.message)}
+});
+$("#refresh-shared").addEventListener("click",drawSharedStyles);
+$("#shared-style-list").addEventListener("click",async e=>{
+  const b=e.target.closest("button");if(!b)return;
+  const items=JSON.parse($("#shared-style-list").dataset.items||"[]");
+  if(b.dataset.sharedApply){const x=items.find(y=>y.id===b.dataset.sharedApply);if(x){setS(x.settings);say("Тема применена только у вас.")}}
+  if(b.dataset.sharedDelete){if(!confirm("Удалить опубликованную тему из общего каталога?"))return;try{await window.MirageCloud.deleteSharedStyle(b.dataset.sharedDelete);say("Тема удалена.");drawSharedStyles()}catch(err){say("Не удалось удалить: "+err.message)}}
+});
+window.addEventListener("mirage-cloud-ready", drawSharedStyles);
+window.addEventListener("mirage-auth-changed", drawSharedStyles);
 // ===== переключатель вкладок =====
 function show(v){
   if(!["laws","favorites","design","account","admin"].includes(v))v="laws";
@@ -642,13 +666,26 @@ apply();sync();drawSaved();render();
     } catch(e) { note("Не удалось обновить избранное: "+e.message,"error"); }
   }
 
+  async function loadSharedStyles() {
+    if (!configured) throw new Error("Каталог пока недоступен.");
+    const response = await fetch(`${apiBase()}/rest/v1/shared_styles?select=id,user_id,author_name,name,settings,created_at&order=created_at.desc`, { headers: { "apikey": SUPABASE_ANON_KEY } });
+    return await parseResponse(response);
+  }
+  async function publishSharedStyle(name, settings) {
+    if (!state.session) throw new Error("Войдите в аккаунт, чтобы публиковать темы.");
+    const author = state.profile?.display_name || state.session.user?.email?.split("@")[0] || "Пользователь";
+    await rest("shared_styles", { method: "POST", headers: { "Prefer": "return=minimal" }, body: JSON.stringify({ user_id: uid(), author_name: author.slice(0,40), name: name.slice(0,40), settings }) });
+  }
+  async function deleteSharedStyle(id) {
+    if (!state.session) throw new Error("Войдите в аккаунт.");
+    await rest(`shared_styles?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(uid())}`, { method: "DELETE", headers: { "Prefer": "return=minimal" } });
+  }
   window.MirageCloud = {
-    isFavorite: (it) => state.favorites.has(keyOf(it)),
-    renderFavorites,
-    renderAccount,
-    saveStyles,
-    scheduleSettingsSave: queueSettingsSave
+    isFavorite: (it) => state.favorites.has(keyOf(it)), renderFavorites, renderAccount, saveStyles,
+    scheduleSettingsSave: queueSettingsSave, loadSharedStyles, publishSharedStyle, deleteSharedStyle,
+    currentUserId: () => uid(), isLoggedIn: () => !!state.session
   };
+  window.dispatchEvent(new Event("mirage-cloud-ready"));
 
   $("#list").addEventListener("click", e => {
     const b=e.target.closest("[data-fav]"); if(!b)return;
