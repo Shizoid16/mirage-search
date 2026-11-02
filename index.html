@@ -116,7 +116,23 @@ footer a{color:var(--acct)}
 .user-card .uc-avatar{width:58px;height:58px;object-fit:cover;border-radius:50%;border:3px solid var(--panel);background:var(--line)}
 .user-card .uc-name{font-weight:600;overflow-wrap:anywhere}
 .user-card .uc-bio{font-size:13px;color:var(--mute);min-height:20px;overflow-wrap:anywhere}
+
 .user-card .account-actions{margin-top:10px}
+.user-card .uc-name button{border:0;background:none;color:var(--ink);font:inherit;font-weight:600;padding:0;text-align:left;cursor:pointer}
+.user-card .uc-name button:hover{color:var(--acct);text-decoration:underline}
+.community-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.community-tools input{flex:1;min-width:220px}
+.social-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 6px;margin-left:5px;border-radius:999px;background:var(--red);color:white;font-size:11px;line-height:1}
+.profile-modal{position:fixed;inset:0;z-index:1000;background:#0009;display:grid;place-items:center;padding:16px}
+.profile-modal[hidden]{display:none}
+.profile-modal-box{width:min(560px,100%);max-height:min(85vh,760px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 60px #0005}
+.profile-modal-banner{height:150px;background:linear-gradient(120deg,var(--accsoft),var(--panel)) center/cover no-repeat}
+.profile-modal-content{padding:0 20px 20px}
+.profile-modal-avatar{width:92px;height:92px;object-fit:cover;border-radius:50%;border:4px solid var(--panel);background:var(--line);margin-top:-46px;position:relative}
+.profile-modal-close{float:right;margin:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px}
+.profile-modal-name{font-size:22px;font-weight:600;margin:8px 0 2px;overflow-wrap:anywhere}
+.profile-modal-bio{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--mute);margin:10px 0}
+.profile-modal-meta{font-size:13px;color:var(--mute)}
 
 </style>
 </head>
@@ -124,7 +140,7 @@ footer a{color:var(--acct)}
 <div class="page">
 <header class="top">
   <div class="brand"><span id="ico">⚖️</span><div><h1 id="ttl">Mirage</h1><p class="sub" id="sub">Законодательство штата Сан-Андреас · Nova RP</p></div></div>
-  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="users" aria-selected="false">Люди</button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
+  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="users" aria-selected="false">Люди <span id="social-notice-count" class="social-count" hidden>0</span></button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
 </header>
 <main id="v-laws">
   <div class="hero">
@@ -145,10 +161,14 @@ footer a{color:var(--acct)}
   <section class="account-panel">
     <div class="account-actions" style="justify-content:space-between"><h2 style="margin:0">Пользователи</h2><button class="account-btn secondary" id="users-refresh" type="button">Обновить</button></div>
     <p class="account-note" id="users-note">Войдите в аккаунт, чтобы просматривать пользователей.</p>
+    <div class="community-tools"><input id="users-search" type="search" placeholder="Найти пользователя по имени…" aria-label="Поиск пользователей"><span class="account-note" id="users-search-count"></span></div>
     <div class="users-grid" id="users-list"></div>
   </section>
   <section class="account-panel"><h2>Заявки в друзья</h2><div id="friend-requests" class="users-grid"><p class="account-note">Войдите, чтобы увидеть заявки.</p></div></section>
   <section class="account-panel"><h2>Мои друзья</h2><div id="friends-list" class="users-grid"><p class="account-note">Войдите, чтобы увидеть друзей.</p></div></section>
+  <div class="profile-modal" id="public-profile-modal" hidden role="dialog" aria-modal="true" aria-labelledby="public-profile-name">
+    <div class="profile-modal-box"><button class="profile-modal-close" id="public-profile-close" type="button" aria-label="Закрыть">×</button><div class="profile-modal-banner" id="public-profile-banner"></div><div class="profile-modal-content"><img class="profile-modal-avatar" id="public-profile-avatar" alt="Аватар"><div class="profile-modal-name" id="public-profile-name"></div><div class="profile-modal-meta" id="public-profile-date"></div><div class="profile-modal-bio" id="public-profile-bio"></div><div id="public-profile-actions"></div></div></div>
+  </div>
 </main>
 <main id="v-account" hidden>
   <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Личный кабинет</h2><p class="sub">Аккаунт, профиль и персональные настройки Mirage.</p></div>
@@ -794,17 +814,21 @@ apply();sync();drawSaved();render();
 (() => {
  const URL_BASE="https://sarfipfoetkttqpwcmdu.supabase.co", KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
  const $=s=>document.querySelector(s), session=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}};
- let busy=false, people=[], relations=[];
+ let busy=false, people=[], relations=[], activeProfileId=null;
  async function token(){let s=session();if(!s?.access_token)throw Error("Сначала войдите в аккаунт.");if(Number(s.expires_at||0)<=Date.now()+60000){if(!s.refresh_token)throw Error("Сессия истекла. Войдите заново.");const r=await fetch(URL_BASE+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json();if(!r.ok)throw Error(d.msg||d.message||"Не удалось обновить сессию.");s={...s,...d,expires_at:Date.now()+Number(d.expires_in||3600)*1000};localStorage.setItem("mirage_supabase_session",JSON.stringify(s));}return s.access_token;}
  async function api(path,method="GET",body=null){const t=await token();const r=await fetch(URL_BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:"return=minimal"},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
  const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- function card(p, action=""){const av=p.avatar_url?`<img class="uc-avatar" src="${esc(p.avatar_url)}" alt="Аватар">`:`<div class="uc-avatar"></div>`;const ban=p.banner_url?`style="background-image:url('${esc(p.banner_url).replace(/'/g,"%27") }')"`:"";return `<article class="user-card"><div class="uc-banner" ${ban}></div><div class="uc-body"><div class="uc-head">${av}<div class="uc-name">${esc(p.display_name||"Пользователь")}</div></div><div class="uc-bio">${esc(p.bio||"")}</div>${action}</div></article>`;}
+ function card(p, action=""){const av=p.avatar_url?`<img class="uc-avatar" src="${esc(p.avatar_url)}" alt="Аватар">`:`<div class="uc-avatar"></div>`;const ban=p.banner_url?`style="background-image:url('${esc(p.banner_url).replace(/'/g,"%27") }')"`:"";return `<article class="user-card"><div class="uc-banner" ${ban}></div><div class="uc-body"><div class="uc-head">${av}<div class="uc-name"><button type="button" data-profile-open="${esc(p.id)}">${esc(p.display_name||"Пользователь")}</button></div></div><div class="uc-bio">${esc(p.bio||"")}</div>${action}</div></article>`;}
+ function filteredPeople(){const q=($('#users-search')?.value||"").trim().toLocaleLowerCase("ru");return q?people.filter(p=>(p.display_name||"").toLocaleLowerCase("ru").includes(q)||(p.bio||"").toLocaleLowerCase("ru").includes(q)):people;}
+ function renderPeople(){const my=me(),shown=filteredPeople(),list=$("#users-list");list.innerHTML=shown.length?shown.map(p=>card(p,p.id===my?`<div class="account-actions"><span class="account-note">Это вы</span></div>`:`<div class="account-actions">${actionFor(p)}</div>`)).join(""):`<p class="account-note">${people.length?"Ничего не найдено.":"Пока пользователей нет."}</p>`;$("#users-search-count").textContent=people.length?`Показано: ${shown.length} из ${people.length}`:"";}
+ function openProfile(id){const p=people.find(x=>x.id===id);if(!p)return;activeProfileId=id;const modal=$("#public-profile-modal"),ban=$("#public-profile-banner"),av=$("#public-profile-avatar");ban.style.backgroundImage=p.banner_url?`url(${JSON.stringify(p.banner_url)})`:"";av.src=p.avatar_url||"";av.hidden=!p.avatar_url;$("#public-profile-name").textContent=p.display_name||"Пользователь";$("#public-profile-bio").textContent=p.bio||"Пользователь пока ничего не рассказал о себе.";$("#public-profile-date").textContent=p.created_at?"В Mirage с "+new Date(p.created_at).toLocaleDateString("ru-RU"):"";$("#public-profile-actions").innerHTML=p.id===me()?"<span class='account-note'>Это ваш профиль</span>":actionFor(p);modal.hidden=false;}
+ function closeProfile(){$("#public-profile-modal").hidden=true;}
  function relFor(id){return relations.find(r=>r.requester_id===id||r.addressee_id===id)||null;}
  function actionFor(p){const r=relFor(p.id);if(!r)return `<button class="account-btn" data-friend-add="${p.id}">Добавить в друзья</button>`;if(r.status==="accepted")return `<button class="account-btn secondary" data-friend-remove="${r.id}">У вас в друзьях</button>`;if(r.status==="pending"){if(r.addressee_id===me())return `<button class="account-btn" data-friend-accept="${r.id}">Принять заявку</button>`;return `<span class="account-note">Заявка отправлена</span>`;}if(r.status==="rejected"&&r.requester_id===me())return `<button class="account-btn" data-friend-resend="${r.id}">Отправить снова</button>`;return `<span class="account-note">Заявка отклонена</span>`;}
  function me(){return session()?.user?.id||null;}
  function render(){const my=me();const list=$("#users-list"),incoming=$("#friend-requests"),friends=$("#friends-list");if(!my){list.innerHTML="";incoming.innerHTML="<p class='account-note'>Войдите в аккаунт, чтобы увидеть заявки.</p>";friends.innerHTML="<p class='account-note'>Войдите в аккаунт, чтобы увидеть друзей.</p>";return;}
-  list.innerHTML=people.length?people.map(p=>card(p,p.id===my?`<div class="account-actions"><span class="account-note">Это вы</span></div>`:`<div class="account-actions">${actionFor(p)}</div>`)).join(""):`<p class="account-note">Пока пользователей нет.</p>`;
-  const ins=relations.filter(r=>r.status==="pending"&&r.addressee_id===my);incoming.innerHTML=ins.length?ins.map(r=>{const p=people.find(x=>x.id===r.requester_id);return p?card(p,`<div class="account-actions"><button class="account-btn" data-friend-accept="${r.id}">Принять</button><button class="account-btn secondary" data-friend-reject="${r.id}">Отклонить</button></div>`):""}).join(""):`<p class="account-note">Новых заявок нет.</p>`;
+  renderPeople();
+  const ins=relations.filter(r=>r.status==="pending"&&r.addressee_id===my);const badge=$("#social-notice-count");badge.textContent=String(ins.length);badge.hidden=!ins.length;incoming.innerHTML=ins.length?ins.map(r=>{const p=people.find(x=>x.id===r.requester_id);return p?card(p,`<div class="account-actions"><button class="account-btn" data-friend-accept="${r.id}">Принять</button><button class="account-btn secondary" data-friend-reject="${r.id}">Отклонить</button></div>`):""}).join(""):`<p class="account-note">Новых заявок нет.</p>`;
   const fs=relations.filter(r=>r.status==="accepted");friends.innerHTML=fs.length?fs.map(r=>{const id=r.requester_id===my?r.addressee_id:r.requester_id,p=people.find(x=>x.id===id);return p?card(p,`<div class="account-actions"><button class="account-btn secondary" data-friend-remove="${r.id}">Удалить из друзей</button></div>`):""}).join(""):`<p class="account-note">Пока нет друзей.</p>`;
  }
  async function load(){const note=$("#users-note");if(!me()){note.textContent="Сначала войдите в аккаунт во вкладке «Аккаунт».";render();return;}note.textContent="Загружаем пользователей…";try{const [p,r]=await Promise.all([api("mirage_public_profiles?select=id,display_name,avatar_url,banner_url,bio,created_at&order=display_name.asc"),api("mirage_friendships?select=id,requester_id,addressee_id,status,created_at&or=(requester_id.eq."+me()+",addressee_id.eq."+me()+")")]);people=p||[];relations=r||[];note.textContent=`Пользователей в Mirage: ${people.length}`;render();}catch(e){note.textContent="Не удалось загрузить: "+e.message;}}
@@ -812,6 +836,12 @@ apply();sync();drawSaved();render();
  $("#users-list")?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b)});
  ["#friend-requests","#friends-list"].forEach(sel=>$(sel)?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b)}));
  $("#users-refresh")?.addEventListener("click",load);
+ $("#users-search")?.addEventListener("input",renderPeople);
+ ["#users-list","#friend-requests","#friends-list"].forEach(sel=>$(sel)?.addEventListener("click",e=>{const b=e.target.closest("[data-profile-open]");if(b)openProfile(b.dataset.profileOpen);}));
+ $("#public-profile-actions")?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b).then(()=>{if(activeProfileId)openProfile(activeProfileId);});});
+ $("#public-profile-close")?.addEventListener("click",closeProfile);
+ $("#public-profile-modal")?.addEventListener("click",e=>{if(e.target.id==="public-profile-modal")closeProfile();});
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfile();});
  window.MirageSocial={load};
 })();
 </script>
