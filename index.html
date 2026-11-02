@@ -134,13 +134,32 @@ footer a{color:var(--acct)}
 .profile-modal-bio{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--mute);margin:10px 0}
 .profile-modal-meta{font-size:13px;color:var(--mute)}
 
+
+.messages-layout{display:grid;grid-template-columns:minmax(190px,260px) minmax(0,1fr);gap:14px;min-height:430px}
+.messages-sidebar,.messages-chat{border:1px solid var(--line);border-radius:12px;min-width:0;overflow:hidden}
+.messages-sidebar h3{font-size:16px;margin:0;padding:13px;border-bottom:1px solid var(--line)}
+.message-contact{display:flex;width:100%;align-items:center;gap:10px;padding:11px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer}
+.message-contact[aria-current="true"]{background:var(--accsoft)}
+.message-contact img,.message-contact .mc-avatar{width:38px;height:38px;flex:none;border-radius:50%;object-fit:cover;background:var(--line)}
+.message-contact span{min-width:0;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.message-contact small{display:block;color:var(--mute);font-size:12px}
+.messages-chat{display:flex;flex-direction:column;min-height:430px}
+.messages-chat-head{padding:13px 15px;border-bottom:1px solid var(--line);font-weight:600;min-height:48px}
+.messages-list{padding:14px;display:flex;flex-direction:column;gap:9px;overflow:auto;flex:1;max-height:440px;min-height:250px}
+.message-bubble{max-width:min(78%,560px);padding:9px 12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);align-self:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}
+.message-bubble.mine{align-self:flex-end;background:var(--accsoft);border-color:var(--acc)}
+.message-time{display:block;color:var(--mute);font-size:11px;margin-top:4px;text-align:right}
+.messages-compose{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);align-items:flex-end}
+.messages-compose textarea{flex:1;min-width:0;resize:vertical;max-height:120px}
+@media(max-width:720px){.messages-layout{grid-template-columns:1fr}.messages-sidebar{max-height:220px;overflow:auto}.messages-chat{min-height:380px}.message-bubble{max-width:90%}}
+
 </style>
 </head>
 <body>
 <div class="page">
 <header class="top">
   <div class="brand"><span id="ico">⚖️</span><div><h1 id="ttl">Mirage</h1><p class="sub" id="sub">Законодательство штата Сан-Андреас · Nova RP</p></div></div>
-  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="users" aria-selected="false">Люди <span id="social-notice-count" class="social-count" hidden>0</span></button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
+  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="users" aria-selected="false">Люди <span id="social-notice-count" class="social-count" hidden>0</span></button><button data-v="messages" aria-selected="false">Сообщения <span id="messages-unread-count" class="social-count" hidden>0</span></button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
 </header>
 <main id="v-laws">
   <div class="hero">
@@ -169,6 +188,16 @@ footer a{color:var(--acct)}
   <div class="profile-modal" id="public-profile-modal" hidden role="dialog" aria-modal="true" aria-labelledby="public-profile-name">
     <div class="profile-modal-box"><button class="profile-modal-close" id="public-profile-close" type="button" aria-label="Закрыть">×</button><div class="profile-modal-banner" id="public-profile-banner"></div><div class="profile-modal-content"><img class="profile-modal-avatar" id="public-profile-avatar" alt="Аватар"><div class="profile-modal-name" id="public-profile-name"></div><div class="profile-modal-meta" id="public-profile-date"></div><div class="profile-modal-bio" id="public-profile-bio"></div><div id="public-profile-actions"></div></div></div>
   </div>
+</main>
+<main id="v-messages" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Сообщения</h2><p class="sub">Личные переписки с вашими друзьями в Mirage.</p></div>
+  <section class="account-panel">
+    <p class="account-note" id="messages-note">Загружаем переписки…</p>
+    <div class="messages-layout">
+      <aside class="messages-sidebar"><h3>Диалоги</h3><div id="messages-contacts"><p class="account-note">Здесь появятся ваши друзья.</p></div></aside>
+      <section class="messages-chat"><div class="messages-chat-head" id="messages-chat-head">Выберите друга, чтобы открыть переписку</div><div class="messages-list" id="messages-list"><p class="account-note">Сообщения появятся здесь.</p></div><form class="messages-compose" id="messages-form"><textarea id="messages-input" rows="2" maxlength="4000" placeholder="Напишите сообщение…" disabled></textarea><button class="account-btn" id="messages-send" type="submit" disabled>Отправить</button></form></section>
+    </div>
+  </section>
 </main>
 <main id="v-account" hidden>
   <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Личный кабинет</h2><p class="sub">Аккаунт, профиль и персональные настройки Mirage.</p></div>
@@ -507,12 +536,13 @@ $("#v-design").addEventListener("click",async e=>{
 });
 // ===== переключатель вкладок =====
 function show(v){
-  if(!["laws","favorites","design","account","users","admin"].includes(v))v="laws";
+  if(!["laws","favorites","design","account","users","messages","admin"].includes(v))v="laws";
   document.querySelectorAll(".views button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v)));
-  ["laws","favorites","design","account","users","admin"].forEach(k=>$("#v-"+k).hidden=v!==k);
+  ["laws","favorites","design","account","users","messages","admin"].forEach(k=>$("#v-"+k).hidden=v!==k);
   if(v==="favorites"&&window.MirageCloud)window.MirageCloud.renderFavorites();
   if(v==="account"&&window.MirageCloud)window.MirageCloud.renderAccount();
   if(v==="users"&&window.MirageSocial)window.MirageSocial.load();
+  if(v==="messages"&&window.MirageMessages)window.MirageMessages.load();
   if(v==="admin")window.MirageAdmin?.open();
   scrollTo(0,0);
 }
@@ -846,6 +876,34 @@ apply();sync();drawSaved();render();
 })();
 </script>
 
+
+
+<script>
+// ===== Личные сообщения Mirage =====
+(() => {
+ const URL_BASE="https://sarfipfoetkttqpwcmdu.supabase.co", KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+ const $=s=>document.querySelector(s), session=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}};
+ let friends=[], selected=null, messages=[], timer=null, busy=false;
+ const me=()=>session()?.user?.id||null;
+ const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ async function token(){let s=session();if(!s?.access_token)throw Error("Сначала войдите в аккаунт.");if(Number(s.expires_at||0)<=Date.now()+60000){if(!s.refresh_token)throw Error("Сессия истекла. Войдите заново.");const r=await fetch(URL_BASE+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json();if(!r.ok)throw Error(d.msg||d.message||"Не удалось обновить сессию.");s={...s,...d,expires_at:Date.now()+Number(d.expires_in||3600)*1000};localStorage.setItem("mirage_supabase_session",JSON.stringify(s));}return s.access_token;}
+ async function api(path,method="GET",body=null,prefer="return=minimal"){const t=await token(),r=await fetch(URL_BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:prefer},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
+ function note(t){$("#messages-note").textContent=t;}
+ function fmt(t){return new Date(t).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
+ function renderContacts(){const box=$("#messages-contacts");box.innerHTML=friends.length?friends.map(f=>`<button class="message-contact" type="button" data-chat="${f.id}" aria-current="${selected===f.id}">${f.avatar_url?`<img src="${esc(f.avatar_url)}" alt="">`:`<span class="mc-avatar"></span>`}<span>${esc(f.display_name||"Пользователь")}<small>${f.unread?"Непрочитанных: "+f.unread:"Открыть переписку"}</small></span></button>`).join(""):`<p class="account-note" style="padding:12px">У вас пока нет друзей. Добавьте пользователей в разделе «Люди».</p>`;}
+ function renderMessages(){const box=$("#messages-list");box.innerHTML=messages.length?messages.map(m=>`<div class="message-bubble ${m.sender_id===me()?"mine":""}">${esc(m.body)}<span class="message-time">${fmt(m.created_at)}${m.sender_id===me()&&m.read_at?" · Прочитано":""}</span></div>`).join(""):`<p class="account-note">Пока нет сообщений. Напишите первым!</p>`;box.scrollTop=box.scrollHeight;}
+ async function loadFriends(){const [rels,profiles]=await Promise.all([api("mirage_friendships?select=requester_id,addressee_id&status=eq.accepted&or=(requester_id.eq."+me()+",addressee_id.eq."+me()+")"),api("mirage_public_profiles?select=id,display_name,avatar_url")]);const ids=rels.map(r=>r.requester_id===me()?r.addressee_id:r.requester_id);friends=profiles.filter(p=>ids.includes(p.id)).map(p=>({...p,unread:0}));}
+ async function unreadCounts(){if(!friends.length)return;const rows=await api("mirage_messages?select=sender_id&recipient_id=eq."+me()+"&read_at=is.null");friends.forEach(f=>f.unread=rows.filter(m=>m.sender_id===f.id).length);const n=friends.reduce((a,f)=>a+f.unread,0),b=$("#messages-unread-count");b.textContent=String(n);b.hidden=!n;renderContacts();}
+ async function openChat(id){selected=id;const f=friends.find(x=>x.id===id);if(!f)return;$("#messages-chat-head").textContent=f.display_name||"Переписка";$("#messages-input").disabled=false;$("#messages-send").disabled=false;renderContacts();await refreshChat();}
+ async function refreshChat(){if(!selected)return;const id=selected;try{const filter="&or=(and(sender_id.eq."+me()+",recipient_id.eq."+id+"),and(sender_id.eq."+id+",recipient_id.eq."+me()+"))";messages=await api("mirage_messages?select=id,sender_id,recipient_id,body,created_at,read_at"+filter+"&order=created_at.asc&limit=300");const unread=messages.filter(m=>m.recipient_id===me()&&!m.read_at).map(m=>m.id);if(unread.length){await api("mirage_messages?id=in.("+unread.join(",")+")","PATCH",{read_at:new Date().toISOString()});messages.forEach(m=>{if(unread.includes(m.id))m.read_at=new Date().toISOString()});}renderMessages();await unreadCounts();}catch(e){note("Не удалось обновить переписку: "+e.message);}}
+ async function load(){if(!me()){note("Сначала войдите в аккаунт во вкладке «Аккаунт».");$("#messages-contacts").innerHTML="";$("#messages-list").innerHTML="<p class='account-note'>Войдите, чтобы пользоваться сообщениями.</p>";$("#messages-input").disabled=true;$("#messages-send").disabled=true;return;}try{note("Загружаем друзей и переписки…");await loadFriends();await unreadCounts();note("Ваши личные переписки с друзьями.");if(selected&&friends.some(f=>f.id===selected))await refreshChat();else if(friends.length&&!selected)await openChat(friends[0].id);if(timer)clearInterval(timer);timer=setInterval(()=>{if(!$("#v-messages").hidden){unreadCounts().catch(()=>{});refreshChat().catch(()=>{});}},7000);}catch(e){note("Не удалось загрузить сообщения: "+e.message);}}
+ async function send(e){e.preventDefault();if(busy||!selected)return;const field=$("#messages-input"),body=field.value.trim();if(!body)return;busy=true;$("#messages-send").disabled=true;try{await api("mirage_messages","POST",{sender_id:me(),recipient_id:selected,body});field.value="";await refreshChat();}catch(e){note("Не удалось отправить сообщение: "+e.message);}finally{busy=false;$("#messages-send").disabled=false;}}
+ $("#messages-contacts")?.addEventListener("click",e=>{const b=e.target.closest("[data-chat]");if(b)openChat(b.dataset.chat)});
+ $("#messages-form")?.addEventListener("submit",send);
+ $("#messages-input")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#messages-form").requestSubmit();}});
+ window.MirageMessages={load};
+})();
+</script>
 
 <script>
 (() => {
