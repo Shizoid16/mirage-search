@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
 <title>Mirage — Законодательство</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500&family=Rubik:wght@400;500;600&family=PT+Serif:wght@400;700&family=Playfair+Display:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -105,6 +105,8 @@ footer a{color:var(--acct)}
 .fav-empty{padding:28px 0;color:var(--mute)}
 @media(max-width:720px){.account-panel{padding:16px}.views button{padding:7px 12px}}
 
+
+.profile-custom{display:grid;gap:14px}.profile-banner{height:150px;border-radius:10px;background:var(--accsoft) center/cover no-repeat;border:1px solid var(--line);position:relative;overflow:hidden}.profile-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--panel);border:4px solid var(--panel);margin-top:-46px;position:relative}.profile-preview{padding:0 14px 12px}.profile-custom textarea{width:100%;min-height:88px}.profile-file{font-size:13px!important}.profile-hint{font-size:12px;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -148,6 +150,19 @@ footer a{color:var(--acct)}
           <label>Имя пользователя<input id="profile-name" maxlength="40" autocomplete="nickname" placeholder="Как к вам обращаться"></label>
           <div class="account-actions"><button class="account-btn" type="submit">Сохранить профиль</button><button class="account-btn secondary" id="auth-logout" type="button">Выйти</button></div>
         </form>
+        <section class="account-panel profile-custom" style="margin-top:16px">
+          <h2>Оформление профиля</h2>
+          <div class="profile-banner" id="profile-banner-preview"></div>
+          <div class="profile-preview"><img class="profile-avatar" id="profile-avatar-preview" alt="Аватар профиля"><div id="profile-preview-name" style="font-weight:600"></div><div id="profile-preview-bio" class="sub"></div></div>
+          <form id="profile-custom-form" class="account-form">
+            <label>Аватар (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+            <label>Баннер профиля (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-banner-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+            <label>О себе<textarea id="profile-bio" maxlength="300" placeholder="Расскажите немного о себе…"></textarea></label>
+            <div class="profile-hint">Максимальный размер одного файла — 5 МБ. GIF сохраняются как анимация.</div>
+            <div class="account-actions"><button class="account-btn" type="submit" id="profile-custom-save">Сохранить профиль</button></div>
+          </form>
+          <p class="account-note" id="profile-custom-note"></p>
+        </section>
       </div>
       <div class="account-note" id="auth-message" aria-live="polite"></div>
     </section>
@@ -421,7 +436,7 @@ $("#v-design").innerHTML=`<div class="hero"><h2 style="margin:0 0 4px;font-size:
 <span class="f">Вставьте чужой код и примените</span><textarea id="imp" placeholder="MIRAGE1:..." aria-label="Код для импорта"></textarea>
 <div class="row" style="margin-top:8px"><button class="chip" id="ia">Применить код</button><button class="chip" id="rs">Сбросить к стандартному</button></div>
 <p class="ok" id="msg" aria-live="polite"></p>
-<span class="f">Мои стили</span><div class="row"><input id="sn" placeholder="Название стиля" maxlength="30"><button class="chip" id="ss">Сохранить текущий</button></div><div id="sl" style="margin-top:8px"></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h3>Общий каталог тем</h3><p class="lbl">Публикуйте свои темы, чтобы другие могли их применить. Для публикации нужен аккаунт. Применение чужой темы меняет оформление только у вас.</p><div class="row" style="margin-top:8px"><button class="chip" id="publish-style">Опубликовать текущую тему</button><button class="chip" id="refresh-shared">Обновить каталог</button></div><div id="shared-style-list" style="margin-top:10px"></div></section>
+<span class="f">Мои стили в этом браузере</span><div class="row"><input id="sn" placeholder="Название стиля" maxlength="30"><button class="chip" id="ss">Сохранить текущий</button></div><div id="sl" style="margin-top:8px"></div></section>
 </div>`;
 let MSG=0;const say=t=>{$("#msg").textContent=t;clearTimeout(MSG);MSG=setTimeout(()=>$("#msg").textContent="",2500)};
 const SAVED=()=>{try{return JSON.parse(localStorage.getItem("mirage_styles"))||[]}catch(_){return[]}};
@@ -449,30 +464,6 @@ $("#v-design").addEventListener("click",async e=>{
   if(b.dataset.load!==undefined){const x=SAVED()[b.dataset.load];if(x)setS(x.s);return}
   if(b.dataset.del!==undefined){const L=SAVED();L.splice(+b.dataset.del,1);try{localStorage.setItem("mirage_styles",JSON.stringify(L))}catch(_){}window.MirageCloud?.saveStyles(L);drawSaved()}
 });
-async function drawSharedStyles() {
-  const root=$("#shared-style-list"); if(!root)return;
-  root.innerHTML='<span class="lbl">Загружаем каталог…</span>';
-  if(!window.MirageCloud?.loadSharedStyles){root.textContent="Каталог недоступен.";return}
-  try {
-    const list=await window.MirageCloud.loadSharedStyles();
-    root.innerHTML=list.length?list.map(x=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><div><b>${esc(x.name)}</b><div class="lbl">Автор: ${esc(x.author_name||"Пользователь")}</div></div><div class="row"><button class="chip" data-shared-apply="${esc(x.id)}">Применить</button>${window.MirageCloud.currentUserId()===x.user_id?`<button class="chip" data-shared-delete="${esc(x.id)}">Удалить</button>`:""}</div></div>`).join(""):'<span class="lbl">Пока никто не опубликовал темы. Будь первым!</span>';
-    root.dataset.items=JSON.stringify(list);
-  } catch(e){root.textContent="Не удалось загрузить каталог: "+e.message}
-}
-$("#publish-style").addEventListener("click",async()=>{
-  if(!window.MirageCloud?.isLoggedIn()){say("Чтобы публиковать темы, войдите в аккаунт.");show("account");return}
-  const name=$("#sn").value.trim()||prompt("Название темы:"); if(!name)return;
-  try{await window.MirageCloud.publishSharedStyle(name,S);$("#sn").value="";say("Тема опубликована в общем каталоге.");drawSharedStyles()}catch(e){say("Ошибка публикации: "+e.message)}
-});
-$("#refresh-shared").addEventListener("click",drawSharedStyles);
-$("#shared-style-list").addEventListener("click",async e=>{
-  const b=e.target.closest("button");if(!b)return;
-  const items=JSON.parse($("#shared-style-list").dataset.items||"[]");
-  if(b.dataset.sharedApply){const x=items.find(y=>y.id===b.dataset.sharedApply);if(x){setS(x.settings);say("Тема применена только у вас.")}}
-  if(b.dataset.sharedDelete){if(!confirm("Удалить опубликованную тему из общего каталога?"))return;try{await window.MirageCloud.deleteSharedStyle(b.dataset.sharedDelete);say("Тема удалена.");drawSharedStyles()}catch(err){say("Не удалось удалить: "+err.message)}}
-});
-window.addEventListener("mirage-cloud-ready", drawSharedStyles);
-window.addEventListener("mirage-auth-changed", drawSharedStyles);
 // ===== переключатель вкладок =====
 function show(v){
   if(!["laws","favorites","design","account","admin"].includes(v))v="laws";
@@ -560,7 +551,7 @@ apply();sync();drawSaved();render();
     return parseResponse(response);
   }
   async function fetchProfile() {
-    const rows = await rest(`profiles?select=id,display_name,settings,saved_styles&id=eq.${encodeURIComponent(uid())}`, { method: "GET" });
+    const rows = await rest(`profiles?select=id,display_name,settings,saved_styles,avatar_url,banner_url,bio&id=eq.${encodeURIComponent(uid())}`, { method: "GET" });
     return rows?.[0] || { display_name: "", settings: {}, saved_styles: [] };
   }
   async function patchProfile(fields) {
@@ -569,6 +560,42 @@ apply();sync();drawSaved();render();
       body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() })
     });
   }
+  function renderProfileCustomization() {
+    const p=state.profile||{};
+    const av=p.avatar_url||""; const ban=p.banner_url||"";
+    const img=$("#profile-avatar-preview"); if(img) img.src=av||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Crect width='100%25' height='100%25' fill='%239aa8bd'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle' fill='white'%3E%E2%97%8F%3C/text%3E%3C/svg%3E";
+    const banner=$("#profile-banner-preview"); if(banner) banner.style.backgroundImage=ban?`url(${JSON.stringify(ban)})`:"none";
+    $("#profile-bio").value=p.bio||""; $("#profile-preview-name").textContent=p.display_name||state.session?.user?.email||"Пользователь"; $("#profile-preview-bio").textContent=p.bio||"Описание пока не добавлено";
+  }
+  async function uploadProfileImage(file, kind) {
+    if(!file) return null;
+    const allowed=["image/png","image/jpeg","image/gif","image/webp"];
+    if(!allowed.includes(file.type)) throw new Error("Поддерживаются только PNG, JPG, JPEG, GIF и WebP.");
+    if(file.size>5*1024*1024) throw new Error("Файл больше 5 МБ. Выберите изображение поменьше.");
+    const token=await ensureToken(); const userId=uid();
+    const ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const path=`${userId}/${kind}-${Date.now()}.${ext}`;
+    const response=await fetch(`${apiBase()}/storage/v1/object/mirage-profiles/${path}`,{method:"POST",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,"Content-Type":file.type,"x-upsert":"true"},body:file});
+    await parseResponse(response);
+    return `${apiBase()}/storage/v1/object/public/mirage-profiles/${path}`;
+  }
+  async function saveCustomProfile(e) {
+    e.preventDefault(); const status=$("#profile-custom-note"); const btn=$("#profile-custom-save");
+    if(!state.session){status.textContent="Сначала войдите в аккаунт.";return;}
+    btn.disabled=true; status.textContent="Сохраняем профиль…";
+    try {
+      const fields={bio:$("#profile-bio").value.trim()};
+      const avatar=$("#profile-avatar-file").files[0], banner=$("#profile-banner-file").files[0];
+      if(avatar) fields.avatar_url=await uploadProfileImage(avatar,"avatar");
+      if(banner) fields.banner_url=await uploadProfileImage(banner,"banner");
+      await patchProfile(fields); state.profile={...(state.profile||{}),...fields};
+      $("#profile-avatar-file").value=""; $("#profile-banner-file").value="";
+      renderProfileCustomization(); status.textContent="Профиль сохранён.";
+    } catch(err){status.textContent="Не удалось сохранить: "+err.message;}
+    finally{btn.disabled=false;}
+  }
+  $("#profile-custom-form")?.addEventListener("submit",saveCustomProfile);
+  $("#profile-bio")?.addEventListener("input",e=>{$("#profile-preview-bio").textContent=e.target.value||"Описание пока не добавлено"});
   async function loadFavorites() {
     const rows = await rest(`favorites?select=code_key&user_id=eq.${encodeURIComponent(uid())}&order=created_at.desc`, { method: "GET" });
     state.favoriteOrder = (rows || []).map(x => x.code_key);
@@ -604,6 +631,7 @@ apply();sync();drawSaved();render();
       $("#user-email").textContent=state.session.user?.email || "Вы вошли в аккаунт";
       $("#profile-name").value=state.profile?.display_name || "";
       note("Аккаунт подключён. Избранное и настройки синхронизируются.","success");
+      renderProfileCustomization();
     } else {
       guest.hidden=false; user.hidden=true;
       const signup=state.mode==="signup";
@@ -668,26 +696,13 @@ apply();sync();drawSaved();render();
     } catch(e) { note("Не удалось обновить избранное: "+e.message,"error"); }
   }
 
-  async function loadSharedStyles() {
-    if (!configured) throw new Error("Каталог пока недоступен.");
-    const response = await fetch(`${apiBase()}/rest/v1/shared_styles?select=id,user_id,author_name,name,settings,created_at&order=created_at.desc`, { headers: { "apikey": SUPABASE_ANON_KEY } });
-    return await parseResponse(response);
-  }
-  async function publishSharedStyle(name, settings) {
-    if (!state.session) throw new Error("Войдите в аккаунт, чтобы публиковать темы.");
-    const author = state.profile?.display_name || state.session.user?.email?.split("@")[0] || "Пользователь";
-    await rest("shared_styles", { method: "POST", headers: { "Prefer": "return=minimal" }, body: JSON.stringify({ user_id: uid(), author_name: author.slice(0,40), name: name.slice(0,40), settings }) });
-  }
-  async function deleteSharedStyle(id) {
-    if (!state.session) throw new Error("Войдите в аккаунт.");
-    await rest(`shared_styles?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(uid())}`, { method: "DELETE", headers: { "Prefer": "return=minimal" } });
-  }
   window.MirageCloud = {
-    isFavorite: (it) => state.favorites.has(keyOf(it)), renderFavorites, renderAccount, saveStyles,
-    scheduleSettingsSave: queueSettingsSave, loadSharedStyles, publishSharedStyle, deleteSharedStyle,
-    currentUserId: () => uid(), isLoggedIn: () => !!state.session
+    isFavorite: (it) => state.favorites.has(keyOf(it)),
+    renderFavorites,
+    renderAccount,
+    saveStyles,
+    scheduleSettingsSave: queueSettingsSave
   };
-  window.dispatchEvent(new Event("mirage-cloud-ready"));
 
   $("#list").addEventListener("click", e => {
     const b=e.target.closest("[data-fav]"); if(!b)return;
