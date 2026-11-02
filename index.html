@@ -107,13 +107,24 @@ footer a{color:var(--acct)}
 
 
 .profile-custom{display:grid;gap:14px}.profile-banner{height:150px;border-radius:10px;background:var(--accsoft) center/cover no-repeat;border:1px solid var(--line);position:relative;overflow:hidden}.profile-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--panel);border:4px solid var(--panel);margin-top:-46px;position:relative}.profile-preview{padding:0 14px 12px}.profile-custom textarea{width:100%;min-height:88px}.profile-file{font-size:13px!important}.profile-hint{font-size:12px;color:var(--mute)}
+
+.users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:14px}
+.user-card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;min-width:0}
+.user-card .uc-banner{height:76px;background:linear-gradient(120deg,var(--accsoft),var(--panel));background-size:cover;background-position:center}
+.user-card .uc-body{padding:12px 14px}
+.user-card .uc-head{display:flex;align-items:center;gap:10px;margin-top:-30px;margin-bottom:8px}
+.user-card .uc-avatar{width:58px;height:58px;object-fit:cover;border-radius:50%;border:3px solid var(--panel);background:var(--line)}
+.user-card .uc-name{font-weight:600;overflow-wrap:anywhere}
+.user-card .uc-bio{font-size:13px;color:var(--mute);min-height:20px;overflow-wrap:anywhere}
+.user-card .account-actions{margin-top:10px}
+
 </style>
 </head>
 <body>
 <div class="page">
 <header class="top">
   <div class="brand"><span id="ico">⚖️</span><div><h1 id="ttl">Mirage</h1><p class="sub" id="sub">Законодательство штата Сан-Андреас · Nova RP</p></div></div>
-  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
+  <nav class="views" aria-label="Разделы сайта"><button data-v="laws" aria-selected="true">Законы</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="users" aria-selected="false">Люди</button><button data-v="admin" aria-selected="false" id="admin-tab" hidden>⚖️ Управление</button></nav>
 </header>
 <main id="v-laws">
   <div class="hero">
@@ -129,6 +140,16 @@ footer a{color:var(--acct)}
 </main>
 <main id="v-design" hidden></main>
 <main id="v-admin" hidden><div class="hero"><h2 style="margin:0 0 4px;font-size:20px">⚖️ Управление законодательством</h2><p class="sub">Добавление, редактирование и удаление материалов Mirage.</p></div><section class="account-panel"><div class="account-actions"><button class="account-btn" id="admin-add">Добавить статью</button><button class="account-btn secondary" id="admin-import">Импортировать текущую базу статей</button><button class="account-btn secondary" id="admin-refresh">Обновить список</button></div><p class="account-note" id="admin-note">Проверяем права доступа…</p><div id="admin-editor" hidden><form id="admin-form" class="account-form"><input type="hidden" id="e-id"><label>Кодекс / категория<input id="e-category" required placeholder="uk, dk, pk, sd, td, et, ks"></label><label>Раздел<input id="e-group" placeholder="Например: Гл. 4 · Жизнь и здоровье"></label><label>Номер статьи<input id="e-code" required></label><label>Название<input id="e-title" required></label><label>Текст<textarea id="e-body" rows="5"></textarea></label><label>Наказание / срок<input id="e-penalty"></label><label>Штраф<input id="e-fine"></label><label>Уровень розыска<input id="e-wanted"></label><label>Тип дела (F/R)<input id="e-kind" maxlength="1"></label><div class="account-actions"><button class="account-btn" type="submit">Сохранить</button><button class="account-btn secondary" type="button" id="admin-cancel">Отмена</button></div></form></div></section><section id="admin-entries"></section></main>
+<main id="v-users" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Сообщество Mirage</h2><p class="sub">Находите пользователей, отправляйте заявки и управляйте списком друзей.</p></div>
+  <section class="account-panel">
+    <div class="account-actions" style="justify-content:space-between"><h2 style="margin:0">Пользователи</h2><button class="account-btn secondary" id="users-refresh" type="button">Обновить</button></div>
+    <p class="account-note" id="users-note">Войдите в аккаунт, чтобы просматривать пользователей.</p>
+    <div class="users-grid" id="users-list"></div>
+  </section>
+  <section class="account-panel"><h2>Заявки в друзья</h2><div id="friend-requests" class="users-grid"><p class="account-note">Войдите, чтобы увидеть заявки.</p></div></section>
+  <section class="account-panel"><h2>Мои друзья</h2><div id="friends-list" class="users-grid"><p class="account-note">Войдите, чтобы увидеть друзей.</p></div></section>
+</main>
 <main id="v-account" hidden>
   <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Личный кабинет</h2><p class="sub">Аккаунт, профиль и персональные настройки Mirage.</p></div>
   <div class="account-wrap">
@@ -466,11 +487,12 @@ $("#v-design").addEventListener("click",async e=>{
 });
 // ===== переключатель вкладок =====
 function show(v){
-  if(!["laws","favorites","design","account","admin"].includes(v))v="laws";
+  if(!["laws","favorites","design","account","users","admin"].includes(v))v="laws";
   document.querySelectorAll(".views button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v)));
-  ["laws","favorites","design","account","admin"].forEach(k=>$("#v-"+k).hidden=v!==k);
+  ["laws","favorites","design","account","users","admin"].forEach(k=>$("#v-"+k).hidden=v!==k);
   if(v==="favorites"&&window.MirageCloud)window.MirageCloud.renderFavorites();
   if(v==="account"&&window.MirageCloud)window.MirageCloud.renderAccount();
+  if(v==="users"&&window.MirageSocial)window.MirageSocial.load();
   if(v==="admin")window.MirageAdmin?.open();
   scrollTo(0,0);
 }
@@ -763,6 +785,34 @@ apply();sync();drawSaved();render();
     renderAccount(); renderFavorites(); render();
   }
   init();
+})();
+</script>
+
+
+<script>
+// ===== Каталог пользователей и друзья Mirage =====
+(() => {
+ const URL_BASE="https://sarfipfoetkttqpwcmdu.supabase.co", KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+ const $=s=>document.querySelector(s), session=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}};
+ let busy=false, people=[], relations=[];
+ async function token(){let s=session();if(!s?.access_token)throw Error("Сначала войдите в аккаунт.");if(Number(s.expires_at||0)<=Date.now()+60000){if(!s.refresh_token)throw Error("Сессия истекла. Войдите заново.");const r=await fetch(URL_BASE+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json();if(!r.ok)throw Error(d.msg||d.message||"Не удалось обновить сессию.");s={...s,...d,expires_at:Date.now()+Number(d.expires_in||3600)*1000};localStorage.setItem("mirage_supabase_session",JSON.stringify(s));}return s.access_token;}
+ async function api(path,method="GET",body=null){const t=await token();const r=await fetch(URL_BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:"return=minimal"},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
+ const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function card(p, action=""){const av=p.avatar_url?`<img class="uc-avatar" src="${esc(p.avatar_url)}" alt="Аватар">`:`<div class="uc-avatar"></div>`;const ban=p.banner_url?`style="background-image:url('${esc(p.banner_url).replace(/'/g,"%27") }')"`:"";return `<article class="user-card"><div class="uc-banner" ${ban}></div><div class="uc-body"><div class="uc-head">${av}<div class="uc-name">${esc(p.display_name||"Пользователь")}</div></div><div class="uc-bio">${esc(p.bio||"")}</div>${action}</div></article>`;}
+ function relFor(id){return relations.find(r=>r.requester_id===id||r.addressee_id===id)||null;}
+ function actionFor(p){const r=relFor(p.id);if(!r)return `<button class="account-btn" data-friend-add="${p.id}">Добавить в друзья</button>`;if(r.status==="accepted")return `<button class="account-btn secondary" data-friend-remove="${r.id}">У вас в друзьях</button>`;if(r.status==="pending"){if(r.addressee_id===me())return `<button class="account-btn" data-friend-accept="${r.id}">Принять заявку</button>`;return `<span class="account-note">Заявка отправлена</span>`;}if(r.status==="rejected"&&r.requester_id===me())return `<button class="account-btn" data-friend-resend="${r.id}">Отправить снова</button>`;return `<span class="account-note">Заявка отклонена</span>`;}
+ function me(){return session()?.user?.id||null;}
+ function render(){const my=me();const list=$("#users-list"),incoming=$("#friend-requests"),friends=$("#friends-list");if(!my){list.innerHTML="";incoming.innerHTML="<p class='account-note'>Войдите в аккаунт, чтобы увидеть заявки.</p>";friends.innerHTML="<p class='account-note'>Войдите в аккаунт, чтобы увидеть друзей.</p>";return;}
+  const others=people.filter(p=>p.id!==my);list.innerHTML=others.length?others.map(p=>card(p,`<div class="account-actions">${actionFor(p)}</div>`)).join(""):`<p class="account-note">Пока других пользователей нет.</p>`;
+  const ins=relations.filter(r=>r.status==="pending"&&r.addressee_id===my);incoming.innerHTML=ins.length?ins.map(r=>{const p=people.find(x=>x.id===r.requester_id);return p?card(p,`<div class="account-actions"><button class="account-btn" data-friend-accept="${r.id}">Принять</button><button class="account-btn secondary" data-friend-reject="${r.id}">Отклонить</button></div>`):""}).join(""):`<p class="account-note">Новых заявок нет.</p>`;
+  const fs=relations.filter(r=>r.status==="accepted");friends.innerHTML=fs.length?fs.map(r=>{const id=r.requester_id===my?r.addressee_id:r.requester_id,p=people.find(x=>x.id===id);return p?card(p,`<div class="account-actions"><button class="account-btn secondary" data-friend-remove="${r.id}">Удалить из друзей</button></div>`):""}).join(""):`<p class="account-note">Пока нет друзей.</p>`;
+ }
+ async function load(){const note=$("#users-note");if(!me()){note.textContent="Сначала войдите в аккаунт во вкладке «Аккаунт».";render();return;}note.textContent="Загружаем пользователей…";try{const [p,r]=await Promise.all([api("mirage_public_profiles?select=id,display_name,avatar_url,banner_url,bio,created_at&order=display_name.asc"),api("mirage_friendships?select=id,requester_id,addressee_id,status,created_at&or=(requester_id.eq."+me()+",addressee_id.eq."+me()+")")]);people=p||[];relations=r||[];note.textContent=`Пользователей в Mirage: ${people.length}`;render();}catch(e){note.textContent="Не удалось загрузить: "+e.message;}}
+ async function act(button){if(busy)return;busy=true;button.disabled=true;try{if(button.dataset.friendAdd){await api("mirage_friendships","POST",{requester_id:me(),addressee_id:button.dataset.friendAdd,status:"pending"});}else if(button.dataset.friendResend){await api("mirage_friendships?id=eq."+button.dataset.friendResend,"PATCH",{status:"pending",updated_at:new Date().toISOString()});}else if(button.dataset.friendAccept){await api("mirage_friendships?id=eq."+button.dataset.friendAccept,"PATCH",{status:"accepted",updated_at:new Date().toISOString()});}else if(button.dataset.friendReject){await api("mirage_friendships?id=eq."+button.dataset.friendReject,"PATCH",{status:"rejected",updated_at:new Date().toISOString()});}else if(button.dataset.friendRemove){await api("mirage_friendships?id=eq."+button.dataset.friendRemove,"DELETE");}await load();}catch(e){$("#users-note").textContent="Не удалось выполнить действие: "+e.message;}finally{busy=false;button.disabled=false;}}
+ $("#users-list")?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b)});
+ ["#friend-requests","#friends-list"].forEach(sel=>$(sel)?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b)}));
+ $("#users-refresh")?.addEventListener("click",load);
+ window.MirageSocial={load};
 })();
 </script>
 
