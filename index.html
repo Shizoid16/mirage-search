@@ -108,6 +108,18 @@ footer a{color:var(--acct)}
 
 
 .profile-custom{display:grid;gap:14px}.profile-banner{height:150px;border-radius:10px;background:var(--accsoft) center/cover no-repeat;border:1px solid var(--line);position:relative;overflow:hidden}.profile-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--panel);border:4px solid var(--panel);margin-top:-46px;position:relative}.profile-preview{padding:0 14px 12px}.profile-custom textarea{width:100%;min-height:88px}.profile-file{font-size:13px!important}.profile-hint{font-size:12px;color:var(--mute)}
+.crop-modal{position:fixed;inset:0;z-index:1200;background:#000a;display:grid;place-items:center;padding:16px}
+.crop-modal[hidden]{display:none}
+.crop-box{width:min(520px,100%);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 18px 60px #0006}
+.crop-box h2{margin:0 0 6px;font-size:18px}
+.crop-stage{position:relative;overflow:hidden;background:#111;border:1px solid var(--line);border-radius:12px;touch-action:none;cursor:grab;user-select:none}
+.crop-stage.avatar{width:min(320px,100%);aspect-ratio:1;margin:12px auto;border-radius:50%}
+.crop-stage.banner{width:100%;height:180px;margin:12px 0;border-radius:10px}
+.crop-stage img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:none;pointer-events:none;will-change:transform}
+.crop-controls{display:grid;gap:10px;margin-top:12px}
+.crop-controls label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+.crop-controls input[type=range]{width:100%}
+.crop-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 
 .users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:14px}
 .user-card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;min-width:0}
@@ -367,6 +379,7 @@ body:
         <form id="profile-custom-form" class="account-form">
           <label>Аватар (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
           <label>Баннер профиля (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-banner-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+          <p class="profile-hint" id="profile-crop-hint">После выбора файла откроется окно: можно подвинуть и масштабировать фото перед сохранением.</p>
           <label>О себе<textarea id="profile-bio" maxlength="300" placeholder="Расскажите немного о себе…"></textarea></label>
           <label>Приватность профиля<select id="profile-visibility"><option value="public">Виден всем пользователям</option><option value="friends">Только друзьям</option><option value="private">Только мне</option></select></label>
           <label style="display:flex;align-items:center;gap:8px"><input id="profile-show-online" type="checkbox" style="width:auto"> Показывать мой онлайн и последнюю активность</label>
@@ -378,6 +391,20 @@ body:
     </section>
   </div>
 </main>
+</div>
+<div class="crop-modal" id="crop-modal" hidden role="dialog" aria-modal="true" aria-labelledby="crop-title">
+  <div class="crop-box">
+    <h2 id="crop-title">Подгонка изображения</h2>
+    <p class="sub" id="crop-desc">Перетащите фото и измените масштаб. Сохранится только видимая область.</p>
+    <div class="crop-stage" id="crop-stage"><img id="crop-img" alt="Превью" draggable="false"></div>
+    <div class="crop-controls">
+      <label>Масштаб <input type="range" id="crop-zoom" min="100" max="300" value="100"></label>
+    </div>
+    <div class="crop-actions">
+      <button class="account-btn" type="button" id="crop-apply">Применить</button>
+      <button class="account-btn secondary" type="button" id="crop-cancel">Отмена</button>
+    </div>
+  </div>
 </div>
 <footer>Юридическая база содержит оригинальные тексты нормативных документов. Разделы и карточки документов отображаются отдельно; тексты добавляются через управление законодательством.</footer>
 <script>
@@ -717,20 +744,109 @@ apply();sync();drawSaved();render();
       body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() })
     });
   }
+  const cropState={kind:null,url:null,img:null,scale:1,minScale:1,x:0,y:0,drag:false,lx:0,ly:0,pending:{avatar:null,banner:null}};
+  const PLACEHOLDER_AV="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Crect width='100%25' height='100%25' fill='%239aa8bd'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle' fill='white'%3E%E2%97%8F%3C/text%3E%3C/svg%3E";
   function renderProfileCustomization() {
     const p=state.profile||{};
-    const av=p.avatar_url||""; const ban=p.banner_url||"";
-    const img=$("#profile-avatar-preview"); if(img) img.src=av||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Crect width='100%25' height='100%25' fill='%239aa8bd'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle' fill='white'%3E%E2%97%8F%3C/text%3E%3C/svg%3E";
+    const av=cropState.pending.avatar?.preview||p.avatar_url||"";
+    const ban=cropState.pending.banner?.preview||p.banner_url||"";
+    const img=$("#profile-avatar-preview"); if(img) img.src=av||PLACEHOLDER_AV;
     const banner=$("#profile-banner-preview"); if(banner) banner.style.backgroundImage=ban?`url(${JSON.stringify(ban)})`:"none";
-    $("#profile-bio").value=p.bio||""; if($("#profile-visibility"))$("#profile-visibility").value=p.profile_visibility||"public"; if($("#profile-show-online"))$("#profile-show-online").checked=p.show_online!==false; $("#profile-preview-name").textContent=p.display_name||state.session?.user?.email||"Пользователь"; $("#profile-preview-bio").textContent=p.bio||"Описание пока не добавлено";
+    if($("#profile-bio"))$("#profile-bio").value=p.bio||"";
+    if($("#profile-visibility"))$("#profile-visibility").value=p.profile_visibility||"public";
+    if($("#profile-show-online"))$("#profile-show-online").checked=p.show_online!==false;
+    if($("#profile-preview-name"))$("#profile-preview-name").textContent=p.display_name||state.session?.user?.email||"Пользователь";
+    if($("#profile-preview-bio"))$("#profile-preview-bio").textContent=p.bio||"Описание пока не добавлено";
+    const hint=$("#profile-crop-hint");
+    if(hint){
+      const parts=[];
+      if(cropState.pending.avatar)parts.push("аватар готов к сохранению");
+      if(cropState.pending.banner)parts.push("баннер готов к сохранению");
+      hint.textContent=parts.length?("Подобрано: "+parts.join(", ")+". Нажмите «Сохранить профиль».") :"После выбора файла откроется окно: можно подвинуть и масштабировать фото перед сохранением.";
+    }
+  }
+  function cropStageSize(){
+    const stage=$("#crop-stage");
+    return {w:stage.clientWidth,h:stage.clientHeight};
+  }
+  function applyCropTransform(){
+    const img=$("#crop-img"); if(!img||!cropState.img)return;
+    img.style.width=cropState.img.naturalWidth*cropState.scale+"px";
+    img.style.height=cropState.img.naturalHeight*cropState.scale+"px";
+    img.style.transform=`translate(calc(-50% + ${cropState.x}px), calc(-50% + ${cropState.y}px))`;
+  }
+  function fitCropImage(){
+    const {w,h}=cropStageSize(); const iw=cropState.img.naturalWidth, ih=cropState.img.naturalHeight;
+    cropState.minScale=Math.max(w/iw,h/ih);
+    cropState.scale=cropState.minScale;
+    cropState.x=0; cropState.y=0;
+    const zoom=$("#crop-zoom");
+    if(zoom){zoom.min=String(Math.round(cropState.minScale*100));zoom.max=String(Math.round(cropState.minScale*300));zoom.value=String(Math.round(cropState.scale*100));}
+    applyCropTransform();
+  }
+  function openCropper(file,kind){
+    const allowed=["image/png","image/jpeg","image/gif","image/webp"];
+    if(!allowed.includes(file.type)) { const n=$("#profile-custom-note"); if(n)n.textContent="Поддерживаются только PNG, JPG, JPEG, GIF и WebP."; return; }
+    if(file.size>8*1024*1024){ const n=$("#profile-custom-note"); if(n)n.textContent="Файл больше 8 МБ."; return; }
+    if(cropState.url) URL.revokeObjectURL(cropState.url);
+    cropState.kind=kind; cropState.url=URL.createObjectURL(file);
+    const stage=$("#crop-stage"), img=$("#crop-img"), modal=$("#crop-modal");
+    stage.className="crop-stage "+(kind==="avatar"?"avatar":"banner");
+    $("#crop-title").textContent=kind==="avatar"?"Подгонка аватара":"Подгонка баннера";
+    $("#crop-desc").textContent="Перетащите изображение и крутите масштаб. Сохранится только то, что видно в рамке.";
+    img.onload=()=>{cropState.img=img; fitCropImage();};
+    img.src=cropState.url;
+    modal.hidden=false;
+  }
+  function closeCropper(resetInput){
+    $("#crop-modal").hidden=true;
+    if(cropState.url){URL.revokeObjectURL(cropState.url);cropState.url=null;}
+    cropState.img=null; cropState.kind=null;
+    if(resetInput){ $("#profile-avatar-file").value=""; $("#profile-banner-file").value=""; }
+  }
+  function exportCroppedBlob(){
+    return new Promise((resolve,reject)=>{
+      try{
+        const {w,h}=cropStageSize();
+        const outW=cropState.kind==="avatar"?512:Math.round(1200);
+        const outH=cropState.kind==="avatar"?512:Math.round(outW*(h/w));
+        const canvas=document.createElement("canvas");
+        canvas.width=outW; canvas.height=outH;
+        const ctx=canvas.getContext("2d");
+        const iw=cropState.img.naturalWidth, ih=cropState.img.naturalHeight;
+        const dw=iw*cropState.scale, dh=ih*cropState.scale;
+        const dx=w/2+cropState.x-dw/2, dy=h/2+cropState.y-dh/2;
+        // source rect corresponding to visible stage
+        const sx=(-dx)/cropState.scale, sy=(-dy)/cropState.scale, sw=w/cropState.scale, sh=h/cropState.scale;
+        ctx.fillStyle="#000"; ctx.fillRect(0,0,outW,outH);
+        ctx.drawImage(cropState.img, sx, sy, sw, sh, 0, 0, outW, outH);
+        canvas.toBlob(b=>{ if(!b) reject(new Error("Не удалось обработать изображение")); else resolve(b); }, "image/jpeg", 0.92);
+      }catch(err){reject(err);}
+    });
+  }
+  async function applyCropper(){
+    if(!cropState.kind||!cropState.img)return;
+    const status=$("#profile-custom-note");
+    try{
+      const blob=await exportCroppedBlob();
+      const file=new File([blob], `${cropState.kind}-${Date.now()}.jpg`, {type:"image/jpeg"});
+      const preview=URL.createObjectURL(blob);
+      if(cropState.pending[cropState.kind]?.preview) URL.revokeObjectURL(cropState.pending[cropState.kind].preview);
+      cropState.pending[cropState.kind]={file,preview};
+      if(cropState.kind==="avatar"){ const img=$("#profile-avatar-preview"); if(img) img.src=preview; }
+      else { const ban=$("#profile-banner-preview"); if(ban) ban.style.backgroundImage=`url(${JSON.stringify(preview)})`; }
+      closeCropper(true);
+      renderProfileCustomization();
+      if(status) status.textContent=(cropState.pending.avatar||cropState.pending.banner)?"Кадр применён. Нажмите «Сохранить профиль», чтобы загрузить на сервер.":"";
+    }catch(err){ if(status) status.textContent="Ошибка обработки: "+err.message; }
   }
   async function uploadProfileImage(file, kind) {
     if(!file) return null;
     const allowed=["image/png","image/jpeg","image/gif","image/webp"];
     if(!allowed.includes(file.type)) throw new Error("Поддерживаются только PNG, JPG, JPEG, GIF и WebP.");
-    if(file.size>5*1024*1024) throw new Error("Файл больше 5 МБ. Выберите изображение поменьше.");
+    if(file.size>8*1024*1024) throw new Error("Файл больше 8 МБ. Выберите изображение поменьше.");
     const token=await ensureToken(); const userId=uid();
-    const ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
     const path=`${userId}/${kind}-${Date.now()}.${ext}`;
     const response=await fetch(`${apiBase()}/storage/v1/object/mirage-profiles/${path}`,{method:"POST",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,"Content-Type":file.type,"x-upsert":"true"},body:file});
     await parseResponse(response);
@@ -742,10 +858,14 @@ apply();sync();drawSaved();render();
     btn.disabled=true; status.textContent="Сохраняем профиль…";
     try {
       const fields={bio:$("#profile-bio").value.trim(),profile_visibility:$("#profile-visibility")?.value||"public",show_online:$("#profile-show-online")?.checked!==false};
-      const avatar=$("#profile-avatar-file").files[0], banner=$("#profile-banner-file").files[0];
-      if(avatar) fields.avatar_url=await uploadProfileImage(avatar,"avatar");
-      if(banner) fields.banner_url=await uploadProfileImage(banner,"banner");
+      if(cropState.pending.avatar?.file) fields.avatar_url=await uploadProfileImage(cropState.pending.avatar.file,"avatar");
+      else if($("#profile-avatar-file").files[0]) fields.avatar_url=await uploadProfileImage($("#profile-avatar-file").files[0],"avatar");
+      if(cropState.pending.banner?.file) fields.banner_url=await uploadProfileImage(cropState.pending.banner.file,"banner");
+      else if($("#profile-banner-file").files[0]) fields.banner_url=await uploadProfileImage($("#profile-banner-file").files[0],"banner");
       await patchProfile(fields); state.profile={...(state.profile||{}),...fields};
+      if(cropState.pending.avatar?.preview) URL.revokeObjectURL(cropState.pending.avatar.preview);
+      if(cropState.pending.banner?.preview) URL.revokeObjectURL(cropState.pending.banner.preview);
+      cropState.pending={avatar:null,banner:null};
       $("#profile-avatar-file").value=""; $("#profile-banner-file").value="";
       renderProfileCustomization(); status.textContent="Профиль сохранён.";
     } catch(err){status.textContent="Не удалось сохранить: "+err.message;}
@@ -753,6 +873,20 @@ apply();sync();drawSaved();render();
   }
   $("#profile-custom-form")?.addEventListener("submit",saveCustomProfile);
   $("#profile-bio")?.addEventListener("input",e=>{$("#profile-preview-bio").textContent=e.target.value||"Описание пока не добавлено"});
+  $("#profile-avatar-file")?.addEventListener("change",e=>{const f=e.target.files?.[0]; if(f) openCropper(f,"avatar");});
+  $("#profile-banner-file")?.addEventListener("change",e=>{const f=e.target.files?.[0]; if(f) openCropper(f,"banner");});
+  $("#crop-apply")?.addEventListener("click",applyCropper);
+  $("#crop-cancel")?.addEventListener("click",()=>closeCropper(true));
+  $("#crop-zoom")?.addEventListener("input",e=>{cropState.scale=Math.max(cropState.minScale, Number(e.target.value)/100); applyCropTransform();});
+  (()=>{
+    const stage=$("#crop-stage"); if(!stage)return;
+    const onDown=ev=>{if(!cropState.img)return; cropState.drag=true; stage.style.cursor="grabbing"; const p=ev.touches?ev.touches[0]:ev; cropState.lx=p.clientX; cropState.ly=p.clientY; ev.preventDefault();};
+    const onMove=ev=>{if(!cropState.drag)return; const p=ev.touches?ev.touches[0]:ev; cropState.x+=p.clientX-cropState.lx; cropState.y+=p.clientY-cropState.ly; cropState.lx=p.clientX; cropState.ly=p.clientY; applyCropTransform(); ev.preventDefault();};
+    const onUp=()=>{cropState.drag=false; stage.style.cursor="grab";};
+    stage.addEventListener("mousedown",onDown); stage.addEventListener("touchstart",onDown,{passive:false});
+    window.addEventListener("mousemove",onMove); window.addEventListener("touchmove",onMove,{passive:false});
+    window.addEventListener("mouseup",onUp); window.addEventListener("touchend",onUp);
+  })();
   async function loadFavorites() {
     const rows = await rest(`favorites?select=code_key&user_id=eq.${encodeURIComponent(uid())}&order=created_at.desc`, { method: "GET" });
     state.favoriteOrder = (rows || []).map(x => x.code_key);
