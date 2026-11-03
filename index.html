@@ -92,8 +92,9 @@ footer a{color:var(--acct)}
 .account-panel h2{margin:0 0 6px;font-size:20px}
 .account-panel p{color:var(--mute);margin:4px 0 14px}
 .account-form{display:grid;gap:12px}
-.account-form label{display:grid;gap:5px;color:var(--mute);font-size:14px}
-.account-form input{width:100%;font-size:16px}
+.account-form label{display:grid;gap:5px;color:var(--mute);font-size:14px;min-width:0}
+.account-form input,.account-form select,.account-form textarea{width:100%;min-width:0;max-width:100%;font-size:16px;box-sizing:border-box}
+.account-form select{border-radius:var(--r);padding:10px 12px;border-width:2px}
 .account-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
 .account-btn{border:1px solid var(--acc);background:var(--acc);color:var(--onacc);border-radius:999px;padding:9px 17px;font:inherit;font-weight:600;cursor:pointer}
 .account-btn.secondary{background:var(--panel);color:var(--ink);border-color:var(--line)}
@@ -240,9 +241,9 @@ footer a{color:var(--acct)}
       <div id="admin-editor" hidden style="margin-top:14px">
         <form id="admin-form" class="account-form">
           <input type="hidden" id="e-id">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px;align-items:start">
             <label>Кодекс / категория
-              <select id="e-category" required>
+              <select id="e-category" required style="width:100%">
                 <option value="">— выберите —</option>
               </select>
             </label>
