@@ -2,14 +2,1258 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mirage</title>
-<style>body{font-family:system-ui;max-width:640px;margin:40px auto;padding:0 16px;line-height:1.5}code{background:#f0f0f0;padding:2px 6px;border-radius:4px}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<title>Mirage — Законодательство</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500&family=Rubik:wght@400;500;600&family=PT+Serif:wght@400;700&family=Playfair+Display:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef2f6;--panel:#fff;--ink:#14213d;--mute:#5a6678;--line:#d3dbe5;--acc:#0f7b8a;--acct:#0f7b8a;--onacc:#fff;--warn:#8f4f00;--warnsoft:#fbebd3;--red:#a62b2b;--redsoft:#f8dede;--r:6px;--d:1;--fs:16px;--mw:1040px;--hf:"Unbounded";--bf:"Golos Text";--accsoft:color-mix(in srgb,var(--acc) 16%,var(--panel));color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1624;--panel:#172033;--ink:#e6ecf5;--mute:#9aa8bd;--line:#2a3650;--warn:#f0b35a;--warnsoft:#3a2a10;--red:#ff9b9b;--redsoft:#4a1f24;color-scheme:dark}}
+:root[data-theme="dark"]{--warn:#f0b35a;--warnsoft:#3a2a10;--red:#ff9b9b;--redsoft:#4a1f24;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/1.55 var(--bf),system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+:root[data-bgs="grad"] body{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 16%,var(--bg)),var(--bg) 60%) fixed}
+:root[data-bgs="grid"] body{background-image:linear-gradient(color-mix(in srgb,var(--line) 60%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 60%,transparent) 1px,transparent 1px);background-size:32px 32px}
+.page,footer{max-width:var(--mw);margin:0 auto;padding:0 20px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:22px}
+.brand{display:flex;gap:12px;align-items:center}
+#ico{font-size:34px;line-height:1}
+h1{font:500 clamp(24px,5vw,38px)/1.1 var(--hf),var(--bf),system-ui,sans-serif;margin:0}
+.sub{margin:2px 0 0;color:var(--mute);font-size:14px}
+.views{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px}
+.views button{font:inherit;font-size:14px;font-weight:600;padding:7px 18px;border:0;border-radius:999px;background:none;color:var(--ink);cursor:pointer}
+.views button[aria-selected="true"]{background:var(--acc);color:var(--onacc)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--acct);outline-offset:1px}
+.hero{margin:26px 0 12px}
+.sbox{position:relative}
+.sbox svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--mute);fill:none;stroke-width:2}
+.sbox kbd{position:absolute;right:16px;top:50%;transform:translateY(-50%);font:inherit;font-size:13px;color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:1px 8px}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:10px 12px}
+input[type=color]{padding:2px;width:44px;height:36px}
+.search{width:100%;font-size:19px;padding:17px 56px 17px 52px;border-radius:calc(var(--r) + 6px);box-shadow:0 6px 24px color-mix(in srgb,var(--ink) 10%,transparent)}
+.search:focus{border-color:var(--acc)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:inherit;font-size:14px;padding:6px 14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--acc)}
+.chip[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
+select{padding:6px 10px;font-size:14px;border-width:1px;border-radius:999px}
+.lbl{font-size:13px;color:var(--mute)}
+.wrap{display:grid;grid-template-columns:1fr;gap:26px;padding:14px 0 40px}
+.wrap.with-nav{grid-template-columns:240px 1fr}
+#nav{display:none;flex-direction:column;gap:2px;align-self:start;position:sticky;top:12px}
+.with-nav #nav{display:flex}
+#nav button{display:flex;justify-content:space-between;gap:8px;text-align:left;padding:9px 12px;font:inherit;font-size:15px;color:var(--ink);background:none;border:0;border-left:3px solid var(--line);cursor:pointer}
+#nav button:hover{background:var(--panel)}
+#nav button[aria-current="true"]{border-left-color:var(--acc);background:var(--panel);font-weight:600}
+#nav small{color:var(--mute)}
+.head{margin:0 0 12px;color:var(--mute);font-size:14px}
+.card{background:var(--panel);border-radius:var(--r);padding:calc(14px*var(--d)) 18px;margin:0 0 calc(10px*var(--d));border:1px solid var(--line);border-left:4px solid var(--acc)}
+:root[data-cs="line"] .card.F{border-left-color:var(--red)}
+:root[data-cs="flat"] .card{border:0;background:color-mix(in srgb,var(--panel) 80%,var(--bg))}
+:root[data-cs="shadow"] .card{border:0;box-shadow:0 2px 14px color-mix(in srgb,var(--ink) 14%,transparent)}
+.card h2{margin:0 0 6px;font-size:17px;line-height:1.35}
+.num{color:var(--acct);font-weight:600;margin-right:8px}
+.b{font-size:12px;font-weight:600;padding:2px 8px;border-radius:4px;margin-right:6px;vertical-align:1px}
+.b.F{background:var(--redsoft);color:var(--red)}
+.b.R{background:var(--accsoft);color:var(--acct)}
+.card p{margin:0 0 8px;max-width:75ch}
+.meta{display:flex;flex-wrap:wrap;gap:6px 8px;font-size:14px;color:var(--mute)}
+.pen{background:var(--warnsoft);color:var(--warn);padding:1px 9px;border-radius:calc(var(--r)/2 + 1px);font-weight:500}
+.tag{border:1px solid var(--line);padding:1px 9px;border-radius:999px}
+mark{background:var(--accsoft);color:inherit;border-radius:2px;padding:0 1px;box-shadow:inset 0 -2px var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ccard{font:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:16px 18px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--acc);border-radius:var(--r);cursor:pointer}
+.ccard:hover{transform:translateY(-2px)}
+.ccard b{font-size:17px}.ccard span{color:var(--mute);font-size:14px}.ccard small{color:var(--acct);font-weight:600}
+.empty{padding:28px 0;color:var(--mute)}
+.dsec{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin:0 0 12px}
+.dsec h3{margin:0 0 4px;font-size:16px}
+.dsec .f{display:block;font-size:13px;color:var(--mute);margin:14px 0 6px}
+.pal{display:inline-flex;gap:3px;margin-right:4px;vertical-align:middle}
+.dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--line)}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:1px}
+input[type=range]{width:100%;padding:0;accent-color:var(--acc)}
+.dsec textarea{width:100%;min-height:70px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+.ok{color:var(--acct);font-size:14px;min-height:20px;margin:6px 0 0}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;padding-bottom:30px}
+footer{padding-bottom:32px;color:var(--mute);font-size:13px}
+footer a{color:var(--acct)}
+@media (max-width:720px){.wrap.with-nav{grid-template-columns:1fr;gap:10px}.with-nav #nav{flex-direction:row;overflow-x:auto;position:static}#nav button{border-left:0;border-bottom:3px solid var(--line);white-space:nowrap}#nav button[aria-current="true"]{border-bottom-color:var(--acc)}}
+.views{flex-wrap:wrap}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card-head h2{flex:1;min-width:0}
+.fav-btn{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:999px;width:36px;height:36px;font-size:21px;line-height:1;cursor:pointer}
+.fav-btn:hover,.fav-btn[aria-pressed="true"]{color:var(--acc);border-color:var(--acc)}
+.fav-btn[aria-pressed="true"]{background:var(--accsoft)}
+.account-wrap{max-width:680px;padding:14px 0 40px}
+.account-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:14px}
+.account-panel h2{margin:0 0 6px;font-size:20px}
+.account-panel p{color:var(--mute);margin:4px 0 14px}
+.account-form{display:grid;gap:12px}
+.account-form label{display:grid;gap:5px;color:var(--mute);font-size:14px}
+.account-form input{width:100%;font-size:16px}
+.account-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.account-btn{border:1px solid var(--acc);background:var(--acc);color:var(--onacc);border-radius:999px;padding:9px 17px;font:inherit;font-weight:600;cursor:pointer}
+.account-btn.secondary{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.account-btn:disabled{opacity:.55;cursor:not-allowed}
+.account-link{border:0;background:none;color:var(--acct);font:inherit;text-decoration:underline;cursor:pointer;padding:5px}
+.account-note{font-size:14px;color:var(--mute);min-height:22px;margin-top:10px}
+.account-note.error{color:var(--red)}
+.account-note.success{color:var(--acct)}
+.fav-empty{padding:28px 0;color:var(--mute)}
+@media(max-width:720px){.account-panel{padding:16px}.views button{padding:7px 12px}}
+
+
+.profile-custom{display:grid;gap:14px}.profile-banner{height:150px;border-radius:10px;background:var(--accsoft) center/cover no-repeat;border:1px solid var(--line);position:relative;overflow:hidden}.profile-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--panel);border:4px solid var(--panel);margin-top:-46px;position:relative}.profile-preview{padding:0 14px 12px}.profile-custom textarea{width:100%;min-height:88px}.profile-file{font-size:13px!important}.profile-hint{font-size:12px;color:var(--mute)}
+
+.users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:14px}
+.user-card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;min-width:0}
+.user-card .uc-banner{height:76px;background:linear-gradient(120deg,var(--accsoft),var(--panel));background-size:cover;background-position:center}
+.user-card .uc-body{padding:12px 14px}
+.user-card .uc-head{display:flex;align-items:center;gap:10px;margin-top:-30px;margin-bottom:8px}
+.user-card .uc-avatar{width:58px;height:58px;object-fit:cover;border-radius:50%;border:3px solid var(--panel);background:var(--line)}
+.user-card .uc-name{font-weight:600;overflow-wrap:anywhere}
+.user-card .uc-bio{font-size:13px;color:var(--mute);min-height:20px;overflow-wrap:anywhere}
+
+.user-card .account-actions{margin-top:10px}
+.user-card .uc-name button{border:0;background:none;color:var(--ink);font:inherit;font-weight:600;padding:0;text-align:left;cursor:pointer}
+.user-card .uc-name button:hover{color:var(--acct);text-decoration:underline}
+.community-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.community-tools input{flex:1;min-width:220px}
+.social-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 6px;margin-left:5px;border-radius:999px;background:var(--red);color:white;font-size:11px;line-height:1}
+.profile-modal{position:fixed;inset:0;z-index:1000;background:#0009;display:grid;place-items:center;padding:16px}
+.profile-modal[hidden]{display:none}
+.profile-modal-box{width:min(560px,100%);max-height:min(85vh,760px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 60px #0005}
+.profile-modal-banner{height:150px;background:linear-gradient(120deg,var(--accsoft),var(--panel)) center/cover no-repeat}
+.profile-modal-content{padding:0 20px 20px}
+.profile-modal-avatar{width:92px;height:92px;object-fit:cover;border-radius:50%;border:4px solid var(--panel);background:var(--line);margin-top:-46px;position:relative}
+.profile-modal-close{float:right;margin:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px}
+.profile-modal-name{font-size:22px;font-weight:600;margin:8px 0 2px;overflow-wrap:anywhere}
+.profile-modal-bio{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--mute);margin:10px 0}
+.profile-modal-meta{font-size:13px;color:var(--mute)}
+
+
+.messages-layout{display:grid;grid-template-columns:minmax(190px,260px) minmax(0,1fr);gap:14px;min-height:430px}
+.messages-sidebar,.messages-chat{border:1px solid var(--line);border-radius:12px;min-width:0;overflow:hidden}
+.messages-sidebar h3{font-size:16px;margin:0;padding:13px;border-bottom:1px solid var(--line)}
+.message-contact{display:flex;width:100%;align-items:center;gap:10px;padding:11px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer}
+.message-contact[aria-current="true"]{background:var(--accsoft)}
+.message-contact img,.message-contact .mc-avatar{width:38px;height:38px;flex:none;border-radius:50%;object-fit:cover;background:var(--line)}
+.message-contact span{min-width:0;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.message-contact small{display:block;color:var(--mute);font-size:12px}
+.messages-chat{display:flex;flex-direction:column;min-height:430px}
+.messages-chat-head{padding:13px 15px;border-bottom:1px solid var(--line);font-weight:600;min-height:48px}
+.messages-list{padding:14px;display:flex;flex-direction:column;gap:9px;overflow:auto;flex:1;max-height:440px;min-height:250px}
+.message-bubble{max-width:min(78%,560px);padding:9px 12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);align-self:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}
+.message-bubble.mine{align-self:flex-end;background:var(--accsoft);border-color:var(--acc)}
+.message-time{display:block;color:var(--mute);font-size:11px;margin-top:4px;text-align:right}
+.messages-compose{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);align-items:flex-end}
+.messages-compose textarea{flex:1;min-width:0;resize:vertical;max-height:120px}
+@media(max-width:720px){.messages-layout{grid-template-columns:1fr}.messages-sidebar{max-height:220px;overflow:auto}.messages-chat{min-height:380px}.message-bubble{max-width:90%}}
+
+
+.presence-line{display:flex;gap:7px;align-items:center;font-size:12px;color:var(--mute);margin-top:5px}.presence-dot{width:9px;height:9px;border-radius:50%;background:#9aa3af;display:inline-block}.presence-dot.online{background:#20a464;box-shadow:0 0 0 3px #20a46422}.notice-item,.forum-topic,.forum-reply,.law-comment{padding:13px 0;border-bottom:1px solid var(--line)}.notice-item:last-child,.forum-topic:last-child,.forum-reply:last-child,.law-comment:last-child{border-bottom:0}.notice-item.unread{border-left:3px solid var(--acc);padding-left:12px;background:var(--accsoft)}.forum-topic h3{margin:0 0 5px;font-size:17px}.forum-topic p,.law-comment p,.forum-reply p{white-space:pre-wrap;overflow-wrap:anywhere}.forum-meta{font-size:12px;color:var(--mute);margin:4px 0 8px}.forum-topic button,.notice-item button{margin-right:6px}.comments-modal{position:fixed;inset:0;z-index:1100;background:#0009;display:grid;place-items:center;padding:16px}.comments-modal[hidden]{display:none}.comments-box{width:min(700px,100%);max-height:85vh;overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px}.comments-box textarea{width:100%;min-height:80px}.privacy-help{font-size:12px;color:var(--mute)}
+
+</style>
 </head>
 <body>
-<h1>Mirage</h1>
-<p>Файл <code>index.html</code> обновляется. Загрузите последнюю версию вручную в репозиторий <strong>mirage-search</strong> (замена index.html).</p>
-<p>Готовый файл лежит у Grok в артефактах: объединение Законы+Форум, панель админа, массовый импорт в Supabase.</p>
-<p><a href="https://github.com/Shizoid16/mirage-search">Открыть репозиторий</a></p>
+<div class="page">
+<header class="top">
+  <div class="brand"><span id="ico">⚖️</span><div><h1 id="ttl">Mirage</h1><p class="sub" id="sub">Законодательство штата Сан-Андреас · Nova RP</p></div></div>
+  <nav class="views" aria-label="Разделы сайта"><button data-v="forum" aria-selected="true">Форум</button><button data-v="favorites" aria-selected="false">Избранное</button><button data-v="design" aria-selected="false">Дизайн</button><button data-v="account" aria-selected="false">Аккаунт</button><button data-v="users" aria-selected="false">Люди <span id="social-notice-count" class="social-count" hidden>0</span></button><button data-v="messages" aria-selected="false">Сообщения <span id="messages-unread-count" class="social-count" hidden>0</span></button><button data-v="notifications" aria-selected="false">Уведомления <span id="all-notice-count" class="social-count" hidden>0</span></button></nav>
+</header>
+<main id="v-favorites" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Избранное</h2><p class="sub">Сохраняйте важные статьи и быстро возвращайтесь к ним.</p></div>
+  <section id="fav-list" aria-live="polite"></section>
+</main>
+<main id="v-design" hidden></main>
+<main id="v-users" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Сообщество Mirage</h2><p class="sub">Находите пользователей, отправляйте заявки и управляйте списком друзей.</p></div>
+  <section class="account-panel">
+    <div class="account-actions" style="justify-content:space-between"><h2 style="margin:0">Пользователи</h2><button class="account-btn secondary" id="users-refresh" type="button">Обновить</button></div>
+    <p class="account-note" id="users-note">Войдите в аккаунт, чтобы просматривать пользователей.</p>
+    <div class="community-tools"><input id="users-search" type="search" placeholder="Найти пользователя по имени…" aria-label="Поиск пользователей"><span class="account-note" id="users-search-count"></span></div>
+    <div class="users-grid" id="users-list"></div>
+  </section>
+  <section class="account-panel"><h2>Заявки в друзья</h2><div id="friend-requests" class="users-grid"><p class="account-note">Войдите, чтобы увидеть заявки.</p></div></section>
+  <section class="account-panel"><h2>Мои друзья</h2><div id="friends-list" class="users-grid"><p class="account-note">Войдите, чтобы увидеть друзей.</p></div></section>
+  <div class="profile-modal" id="public-profile-modal" hidden role="dialog" aria-modal="true" aria-labelledby="public-profile-name">
+    <div class="profile-modal-box"><button class="profile-modal-close" id="public-profile-close" type="button" aria-label="Закрыть">×</button><div class="profile-modal-banner" id="public-profile-banner"></div><div class="profile-modal-content"><img class="profile-modal-avatar" id="public-profile-avatar" alt="Аватар"><div class="profile-modal-name" id="public-profile-name"></div><div class="profile-modal-meta" id="public-profile-date"></div><div class="profile-modal-bio" id="public-profile-bio"></div><div id="public-profile-actions"></div></div></div>
+  </div>
+</main>
+<main id="v-messages" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Сообщения</h2><p class="sub">Личные переписки с вашими друзьями в Mirage.</p></div>
+  <section class="account-panel">
+    <p class="account-note" id="messages-note">Загружаем переписки…</p>
+    <div class="messages-layout">
+      <aside class="messages-sidebar"><h3>Диалоги</h3><div id="messages-contacts"><p class="account-note">Здесь появятся ваши друзья.</p></div></aside>
+      <section class="messages-chat"><div class="messages-chat-head" id="messages-chat-head">Выберите друга, чтобы открыть переписку</div><div class="messages-list" id="messages-list"><p class="account-note">Сообщения появятся здесь.</p></div><form class="messages-compose" id="messages-form"><textarea id="messages-input" rows="2" maxlength="4000" placeholder="Напишите сообщение…" disabled></textarea><button class="account-btn" id="messages-send" type="submit" disabled>Отправить</button></form></section>
+    </div>
+  </section>
+</main>
+<main id="v-notifications" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Уведомления</h2><p class="sub">Новые сообщения и события в вашем сообществе.</p></div>
+  <section class="account-panel"><div class="account-actions" style="justify-content:space-between"><h2>Центр уведомлений</h2><button class="account-btn secondary" id="notifications-refresh" type="button">Обновить</button></div><p class="account-note" id="notifications-note">Загрузка уведомлений…</p><div id="notifications-list"></div></section>
+</main>
+<main id="v-forum">
+  <div class="hero">
+    <h2 style="margin:0 0 4px;font-size:20px">Форум Mirage</h2>
+    <p class="sub">Законы штата, обсуждения и публикация статей в базу.</p>
+  </div>
+
+  <div class="row" id="forum-subnav" style="margin-bottom:14px;gap:6px;flex-wrap:wrap">
+    <button class="chip" type="button" data-forum-sub="laws" aria-pressed="true">Законы</button>
+    <button class="chip" type="button" data-forum-sub="discuss" aria-pressed="false">Обсуждения</button>
+    <button class="chip" type="button" data-forum-sub="admin" aria-pressed="false" id="forum-sub-admin-btn" hidden>⚖️ Управление</button>
+  </div>
+
+  <!-- ===== Подвкладка: Законы (поиск и карточки из Supabase) ===== -->
+  <div id="forum-sub-laws">
+    <div class="sbox" style="margin-bottom:12px"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" class="search" type="search" placeholder="Что ищем? Номер статьи, слово, штраф…" aria-label="Поиск" autocomplete="off"><kbd>/</kbd></div>
+    <div class="row" id="cf" style="margin-bottom:8px"></div>
+    <div class="row" id="sg" style="margin-bottom:6px"></div>
+    <div class="wrap" id="wrap"><nav id="nav" aria-label="Разделы кодекса"></nav><section id="list" aria-live="polite"></section></div>
+  </div>
+
+  <!-- ===== Подвкладка: Обсуждения ===== -->
+  <div id="forum-sub-discuss" hidden>
+    <section class="account-panel"><h2>Создать обсуждение</h2><form id="forum-form" class="account-form"><label>Заголовок<input id="forum-title" maxlength="120" required placeholder="О чём хотите поговорить?"></label><label>Текст обсуждения<textarea id="forum-body" maxlength="6000" rows="4" required placeholder="Опишите вопрос или ситуацию…"></textarea></label><div class="account-actions"><button class="account-btn" type="submit" id="forum-submit">Опубликовать</button></div></form><p class="account-note" id="forum-note"></p></section>
+    <section class="account-panel"><div class="account-actions" style="justify-content:space-between"><h2>Обсуждения</h2><button class="account-btn secondary" id="forum-refresh" type="button">Обновить</button></div><div id="forum-list"></div></section>
+    <section class="account-panel" id="forum-thread" hidden><div class="account-actions" style="justify-content:space-between"><h2 id="forum-thread-title"></h2><button class="account-btn secondary" id="forum-thread-close" type="button">Закрыть</button></div><p id="forum-thread-body" style="white-space:pre-wrap"></p><div id="forum-replies"></div><form id="forum-reply-form" class="account-form"><label>Ваш ответ<textarea id="forum-reply-body" maxlength="4000" rows="3" required></textarea></label><button class="account-btn" type="submit">Ответить</button></form><p class="account-note" id="forum-thread-note"></p></section>
+  </div>
+
+  <!-- ===== Подвкладка: Управление (только admin) ===== -->
+  <div id="forum-sub-admin" hidden>
+    <section class="account-panel" id="admin-panel">
+      <div class="account-actions" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <h2 style="margin:0">⚖️ Управление законодательством</h2>
+        <div class="account-actions">
+          <button class="account-btn" id="admin-add" type="button">+ Одна статья</button>
+          <button class="account-btn secondary" id="admin-bulk-toggle" type="button">Массовый импорт</button>
+          <button class="account-btn secondary" id="admin-refresh" type="button">Обновить список</button>
+        </div>
+      </div>
+      <p class="account-note" id="admin-note">Проверяем права…</p>
+
+      <div id="admin-editor" hidden style="margin-top:14px">
+        <form id="admin-form" class="account-form">
+          <input type="hidden" id="e-id">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+            <label>Кодекс / категория
+              <select id="e-category" required>
+                <option value="">— выберите —</option>
+              </select>
+            </label>
+            <label>Раздел / глава
+              <input id="e-group" list="e-group-list" placeholder="Например: Гл. 4 · Жизнь и здоровье">
+              <datalist id="e-group-list"></datalist>
+            </label>
+            <label>Номер статьи
+              <input id="e-code" required placeholder="105 или 12.3">
+            </label>
+            <label>Тип (F / R)
+              <select id="e-kind">
+                <option value="">—</option>
+                <option value="F">F — Федеральное</option>
+                <option value="R">R — Региональное</option>
+              </select>
+            </label>
+            <label>Розыск (1–5)
+              <select id="e-wanted">
+                <option value="">—</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              </select>
+            </label>
+            <label>Наказание / срок
+              <input id="e-penalty" placeholder="до 40 мес. / конфискация…">
+            </label>
+            <label>Штраф
+              <input id="e-fine" placeholder="5 000$">
+            </label>
+          </div>
+          <label style="margin-top:8px">Название
+            <input id="e-title" required placeholder="Краткое название статьи">
+          </label>
+          <label>Полный текст статьи
+            <textarea id="e-body" rows="12" placeholder="Вставьте оригинальный текст без пересказа"></textarea>
+          </label>
+          <div class="account-actions">
+            <button class="account-btn" type="submit">Опубликовать в базу</button>
+            <button class="account-btn secondary" type="button" id="admin-cancel">Отмена</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="admin-bulk" hidden style="margin-top:14px">
+        <p class="sub" style="margin:0 0 8px">Вставьте несколько статей. Блоки разделяйте строкой <code>---</code>. Ключи: <b>category</b>, <b>group</b>, <b>code</b>, <b>title</b>, <b>body</b>, <b>penalty</b>, <b>fine</b>, <b>wanted</b>, <b>kind</b>. После публикации данные уходят в Supabase (таблица legal_entries) и сразу появляются во вкладке «Законы».</p>
+        <textarea id="admin-bulk-text" rows="14" style="width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="category: uk
+group: Гл. 4 · Жизнь и здоровье
+code: 105
+title: Убийство
+kind: F
+wanted: 5
+penalty: до 60 мес.
+body:
+Полный текст статьи...
+
+---
+category: dk
+code: 12.1
+title: Превышение скорости
+kind: R
+body:
+Текст..."></textarea>
+        <div class="account-actions" style="margin-top:10px">
+          <button class="account-btn" type="button" id="admin-bulk-run">Опубликовать все в базу</button>
+          <button class="account-btn secondary" type="button" id="admin-bulk-cancel">Закрыть</button>
+        </div>
+        <p class="account-note" id="admin-bulk-note"></p>
+      </div>
+
+      <div id="admin-entries" style="margin-top:16px"></div>
+    </section>
+  </div>
+</main>
+<main id="v-account" hidden>
+  <div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Личный кабинет</h2><p class="sub">Аккаунт, профиль и персональные настройки Mirage.</p></div>
+  <div class="account-wrap">
+    <section class="account-panel">
+      <div id="auth-guest">
+        <h2 id="auth-title">Вход в аккаунт</h2>
+        <p id="auth-description">Войдите, чтобы синхронизировать избранное и оформление между устройствами.</p>
+        <form class="account-form" id="auth-form">
+          <label id="display-name-row" hidden>Имя пользователя<input id="auth-name" name="display_name" maxlength="40" autocomplete="nickname" placeholder="Как к вам обращаться"></label>
+          <label>Email<input id="auth-email" name="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
+          <label>Пароль<input id="auth-password" name="password" type="password" required minlength="6" autocomplete="current-password" placeholder="Минимум 6 символов"></label>
+          <div class="account-actions"><button class="account-btn" id="auth-submit" type="submit">Войти</button><button class="account-link" id="auth-toggle" type="button">Создать аккаунт</button></div>
+        </form>
+      </div>
+      <div id="auth-user" hidden>
+        <h2>Ваш профиль</h2>
+        <p id="user-email"></p>
+        <form class="account-form" id="profile-form">
+          <label>Имя пользователя<input id="profile-name" maxlength="40" autocomplete="nickname" placeholder="Как к вам обращаться"></label>
+          <div class="account-actions"><button class="account-btn" type="submit">Сохранить профиль</button><button class="account-btn secondary" id="auth-logout" type="button">Выйти</button></div>
+        </form>
+        <section class="account-panel profile-custom" style="margin-top:16px">
+          <h2>Оформление профиля</h2>
+          <div class="profile-banner" id="profile-banner-preview"></div>
+          <div class="profile-preview"><img class="profile-avatar" id="profile-avatar-preview" alt="Аватар профиля"><div id="profile-preview-name" style="font-weight:600"></div><div id="profile-preview-bio" class="sub"></div></div>
+          <form id="profile-custom-form" class="account-form">
+            <label>Аватар (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+            <label>Баннер профиля (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-banner-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+            <label>О себе<textarea id="profile-bio" maxlength="300" placeholder="Расскажите немного о себе…"></textarea></label>
+            <label>Приватность профиля<select id="profile-visibility"><option value="public">Виден всем пользователям</option><option value="friends">Только друзьям</option><option value="private">Только мне</option></select></label>
+            <label style="display:flex;align-items:center;gap:8px"><input id="profile-show-online" type="checkbox" style="width:auto"> Показывать мой онлайн и последнюю активность</label>
+            <div class="profile-hint">Максимальный размер одного файла — 5 МБ. GIF сохраняются как анимация. Закрытый профиль не показывается другим пользователям в каталоге.</div>
+            <div class="account-actions"><button class="account-btn" type="submit" id="profile-custom-save">Сохранить профиль</button></div>
+          </form>
+          <p class="account-note" id="profile-custom-note"></p>
+        </section>
+      </div>
+      <div class="account-note" id="auth-message" aria-live="polite"></div>
+    </section>
+    <section class="account-panel"><h2>Как работает аккаунт</h2><p>Избранные статьи, имя профиля и настройки оформления будут храниться в вашей учётной записи. Их можно будет получить после входа с другого устройства. Без входа сайт продолжит работать в обычном режиме, а оформление останется сохранённым в текущем браузере.</p></section>
+  </div>
+</main>
+</div>
+<footer>Юридическая база содержит оригинальные тексты нормативных документов. Разделы и карточки документов отображаются отдельно; тексты добавляются через управление законодательством.</footer>
+<script>
+const CH={general:"Общая часть",4:"Жизнь и здоровье",5:"Свобода, честь, достоинство",6:"Имущество",7:"Экономическая деятельность",8:"Общественная безопасность",9:"Здоровье населения и нравственность",10:"Интересы госслужбы",11:"Правосудие",12:"Военная служба",13:"Конституционный строй и порядок"};
+// Общая часть: [номер, название, суть]
+const RULES=[];
+const CF="конфискация лицензии на оружие",IZ="изъятие";
+// Статьи: [номер, тип F/R, суть, розыск, срок (мес.), штраф, дополнительно]
+const ARTS=[];
+
+const NAME={
+  uk:"Уголовный кодекс San Andreas",
+  ks:"Конституция San Andreas",
+  pk:"Процессуальный кодекс",
+  ak:"Административный кодекс",
+  et:"Этический кодекс",
+  td:"Трудовой кодекс",
+  dk:"Дорожный кодекс",
+  sd:"Судебный кодекс",
+  gs:"Закон о государственной службе",
+  smi:"Закон о средствах массовой информации (СМИ)",
+  oh:"Закон об охоте и сохранении охотничьих ресурсов",
+  opg:"Закон о борьбе с организованной преступностью",
+  usss:"Закон о статусе USSS",
+  lspd:"Закон о статусе LSPD",
+  adv:"Закон «Об адвокатской деятельности»",
+  gt:"Закон о государственной тайне штата SA",
+  pp:"Закон о частном предпринимательстве",
+  visit:"Закон о правилах посещения офисов Capitol, SAHP, LSPD и FIB",
+  weapon:"Закон об оружии",
+  jur:"Закон о юрисдикции San Andreas",
+  gov:"Закон о правительстве San Andreas",
+  doc:"Закон «О документообороте»",
+  special:"Закон об особом положении",
+  ng:"Закон о статусе National Guard",
+  sahp:"Закон о статусе SAHP",
+  fib:"Закон о FIB",
+  ems:"Закон о статусе EMS"
+};
+const THR={uk:410588,dk:410584,pk:0,sd:410585,td:410583,et:410582,ks:410581};
+const OTH={};
+
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>String(s).toLowerCase().replace(/ё/g,"е");
+const DESC={
+  uk:"Преступления, розыск, сроки и штрафы",ks:"Основной закон штата",
+  pk:"Порядок задержания, расследования и процессуальных действий",
+  ak:"Административные правонарушения и ответственность",
+  et:"Этика и нормы поведения",td:"Трудовые отношения и гарантии",
+  dk:"Правила дорожного движения и ответственность",sd:"Суды и судебные процедуры",
+  gs:"Порядок государственной службы",smi:"Правовое регулирование СМИ",
+  oh:"Охота и охрана охотничьих ресурсов",opg:"Противодействие организованной преступности",
+  usss:"Правовой статус и полномочия USSS",lspd:"Правовой статус и полномочия LSPD",
+  adv:"Адвокатская деятельность",gt:"Защита государственной тайны",
+  pp:"Частное предпринимательство",visit:"Порядок посещения государственных офисов",
+  weapon:"Правила оборота и использования оружия",jur:"Юрисдикция штата San Andreas",
+  gov:"Организация и полномочия правительства",doc:"Правила документооборота",
+  special:"Правовой режим особого положения",ng:"Правовой статус National Guard",
+  sahp:"Правовой статус и полномочия SAHP",fib:"Правовой статус и полномочия FIB",
+  ems:"Правовой статус и полномочия EMS"
+};
+// ===== единый индекс для поиска =====
+const IDX=[];
+const SYN={ограбление:["грабеж"],грабеж:["ограбление"],скорость:["скоростн","км/ч"],превышение:["скорост"],авария:["дтп"],дтп:["авария"],наркотики:["наркотическ"],алкоголь:["опьянен"],пьяный:["опьянен"],полиция:["сотрудник","lspd"],миранда:["миранды"],арест:["задержан"],тюрьма:["лишение свободы","тюрьм"],выход:["залог"],взятка:["взятк","подкуп"],оружие:["оруж"],парковка:["парковк","остановк"],увольнение:["увольн","прекращен"],убийство:["убийств","смерти"]};
+const stem=t=>t.length>6?t.slice(0,-2):t.length>5?t.slice(0,-1):t;
+const toks=q=>norm(q).split(/[^a-zа-я0-9.]+/).filter(Boolean).map(t=>t.replace(/^\.+|\.+$/g,"")).filter(Boolean);
+const isNum=t=>/^\d+(\.\d+)*$/.test(t);
+let HLR=null;
+function hl(s){s=String(s);if(!HLR)return esc(s);const n=norm(s);let o="",i=0,m;HLR.lastIndex=0;while((m=HLR.exec(n))){if(!m[0])break;o+=esc(s.slice(i,m.index))+"<mark>"+esc(s.slice(m.index,m.index+m[0].length))+"</mark>";i=m.index+m[0].length}return o+esc(s.slice(i))}
+function search(list,q){
+  const T=toks(q);if(!T.length){HLR=null;return list}
+  const terms=[];
+  T.forEach(t=>{if(isNum(t))terms.push(t);else{terms.push(stem(t));(SYN[t]||[]).forEach(a=>terms.push(norm(a)))}});
+  HLR=new RegExp("("+terms.filter(Boolean).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")","g");
+  const out=[];
+  list.forEach((it,i)=>{
+    let sc=0;
+    for(const t of T){
+      if(isNum(t)){const rx=new RegExp("(^|[^\\d.])"+t.replace(/\./g,"\\.")+"(?!\\d)");if(rx.test(it.n)){sc+=it.n===t?10:4}else if(new RegExp("(^|[^\\d])"+t.replace(/\./g,"\\.")+"(?!\\d)").test(it.hn))sc+=1;else return}
+      else{const al=[stem(t),...(SYN[t]||[]).map(norm)];if(al.some(a=>norm(it.t).includes(a)))sc+=3;else if(al.some(a=>it.h.includes(a)))sc+=1;else return}
+    }
+    out.push([sc,i,it]);
+  });
+  return out.sort((a,b)=>b[0]-a[0]||a[1]-b[1]).map(x=>x[2]);
+}
+// ===== вкладка «Законы» =====
+const V={c:"all",g:"",q:"",t:"",w:"",rand:null};
+const SUG=["ограбление","скорость","залог","миранда","парковка","наркотики","60 минут","взятка"];
+function card(it,showCode){
+  const chips=[it.w?`<span>Розыск <b>${esc(it.w)}</b></span>`:"",it.m?`<span class="pen">${esc(it.m)}</span>`:"",it.fn?`<span class="pen">штраф ${hl(it.fn)}</span>`:"",it.p?`<span class="pen">${hl(it.p)}</span>`:"",showCode?`<span class="tag">${esc(NAME[it.c])}</span>`:""].join("");
+  const favKey=encodeURIComponent(it.c+"|"+it.n),fav=!!window.MirageCloud?.isFavorite(it);
+  return `<article class="card ${it.f}"><div class="card-head"><h2><span class="num">${hl(it.n)}</span>${it.f?`<span class="b ${it.f}">${it.f==="F"?"Федеральное":"Региональное"}</span>`:""}${hl(it.t)}</h2><button class="fav-btn" type="button" data-fav="${favKey}" aria-pressed="${fav}" aria-label="${fav?"Убрать из избранного":"Добавить в избранное"}" title="${fav?"Убрать из избранного":"Добавить в избранное"}">${fav?"★":"☆"}</button></div>${it.x?`<p>${hl(it.x)}</p>`:""}<div class="meta">${chips}</div><div class="account-actions"><button class="account-btn secondary law-comments-open" type="button" data-law-category="${esc(it.c)}" data-law-code="${esc(it.n)}" data-law-title="${esc(it.t)}">Комментарии</button></div></article>`;
+}
+function render(){
+  const act=V.q||V.t||V.w||V.rand;
+  $("#cf").innerHTML=[["all","Все кодексы"],...Object.keys(NAME).map(c=>[c,NAME[c]])].map(([c,n])=>`<button class="chip" data-c="${c}" aria-pressed="${V.c===c}">${n}</button>`).join("")+((V.c==="all"||V.c==="uk")?`<span class="lbl" style="margin-left:6px">УК:</span><button class="chip" data-t="F" aria-pressed="${V.t==="F"}">F</button><button class="chip" data-t="R" aria-pressed="${V.t==="R"}">R</button><select id="w" aria-label="Розыск"><option value="">Розыск: любой</option>${[1,2,3,4,5].map(n=>`<option ${V.w==n?"selected":""}>${n}</option>`).join("")}</select>`:"")+`<button class="chip" id="rnd">Случайная статья</button>`;
+  $("#sg").innerHTML=act?"":`<span class="lbl">Часто ищут:</span>`+SUG.map(s=>`<button class="chip" data-s="${esc(s)}">${esc(s)}</button>`).join("");
+  let html="",browse=false;HLR=null;
+  if(V.rand){html=`<p class="head">Случайная статья · <button class="chip" id="rnd2">ещё одну</button></p>`+card(V.rand,true)}
+  else if(act){
+    let L=IDX.filter(it=>(V.c==="all"||it.c===V.c)&&(!V.t||it.f===V.t)&&(!V.w||String(it.w).includes(V.w)));
+    L=search(L,V.q);
+    html=`<p class="head">Найдено: ${L.length}</p>`+(L.length?L.map(it=>card(it,V.c==="all")).join(""):`<p class="empty">Ничего не найдено. Проверьте номер статьи, снимите фильтры или попробуйте другое слово.</p>`);
+  }else if(V.c==="all"){
+    html=`<div class="grid">${Object.keys(NAME).map(c=>`<button class="ccard" data-open="${c}"><b>${NAME[c]}</b><span>${DESC[c]}</span><small>${IDX.filter(i=>i.c===c).length} записей</small></button>`).join("")}</div>`;
+  }else{
+    browse=true;
+    const items=IDX.filter(i=>i.c===V.c),gs=[...new Set(items.map(i=>i.g))];
+    if(!gs.includes(V.g))V.g=gs[0];
+    $("#nav").innerHTML=gs.map(g=>`<button data-g="${esc(g)}" aria-current="${g===V.g}">${esc(g)}<small>${items.filter(i=>i.g===g).length}</small></button>`).join("");
+    html=`<p class="head">${esc(NAME[V.c]+" · "+V.g)}</p>`+items.filter(i=>i.g===V.g).map(i=>card(i,false)).join("");
+  }
+  $("#wrap").className="wrap"+(browse?" with-nav":"");
+  $("#list").innerHTML=html;
+}
+$("#q").addEventListener("input",e=>{V.q=e.target.value.trim();V.rand=null;render()});
+$("#cf").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.c){V.c=b.dataset.c;V.g="";V.rand=null}
+  else if(b.dataset.t){V.t=V.t===b.dataset.t?"":b.dataset.t;V.rand=null}
+  else if(b.id==="rnd")V.rand=IDX[Math.floor(Math.random()*IDX.length)];
+  render();
+});
+$("#cf").addEventListener("change",e=>{if(e.target.id==="w"){V.w=e.target.value;V.rand=null;render()}});
+$("#sg").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(!b)return;V.q=b.dataset.s;$("#q").value=V.q;render()});
+$("#list").addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]");if(o){V.c=o.dataset.open;V.g="";render();return}
+  if(e.target.id==="rnd2"){V.rand=IDX[Math.floor(Math.random()*IDX.length)];render()}
+});
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;V.g=b.dataset.g;render()});
+addEventListener("keydown",e=>{
+  if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();show("forum");showForumSub("laws");$("#q")?.focus()}
+  else if(e.key==="Escape"&&document.activeElement===$("#q")){V.q="";V.rand=null;$("#q").value="";render()}
+});
+
+// ===== вкладка «Дизайн» =====
+const PAL=[["Прохладный",["#eef2f6","#ffffff","#14213d","#5a6678","#d3dbe5"],["#0f1624","#172033","#e6ecf5","#9aa8bd","#2a3650"]],["Графит",["#f1f1f2","#ffffff","#1c1c1e","#636366","#d8d8dc"],["#121212","#1e1e1e","#ececec","#a0a0a0","#333333"]],["Океан",["#e8f3f6","#ffffff","#0b2e3a","#4d6b76","#c4dde4"],["#07202a","#0c2f3c","#e1f1f5","#8fb3bf","#1d4452"]],["Лес",["#edf3ee","#ffffff","#14301f","#56705f","#cadccd"],["#0d1a12","#14261b","#e3f1e7","#93b09b","#24402e"]],["Сумерки",["#f0eef7","#ffffff","#221a3d","#6a6384","#d9d4ea"],["#14102a","#1d1840","#ece8fa","#a49fc4","#332c5c"]],["Бумага",["#f4f4f1","#fdfdfb","#222222","#6b6b66","#dcdcd5"],["#1a1a18","#242422","#eeeeea","#a8a8a2","#3a3a36"]]];
+const HF=["Unbounded","Golos Text","Playfair Display","Rubik","JetBrains Mono"],BF=["Golos Text","Rubik","PT Serif","JetBrains Mono"];
+const SWS=["#0f7b8a","#c2410c","#3b82f6","#0d8a63","#7c3aed","#be123c","#ca8a04","#22c55e"];
+const DEF={acc:"#0f7b8a",pal:0,th:"auto",r:6,d:1,fs:16,mw:1040,hf:"Unbounded",bf:"Golos Text",cs:"line",bgs:"solid",ttl:"Mirage",sub:"Законодательство штата Сан-Андреас · Nova RP",ico:"⚖️"};
+const PRE=[["Mirage",{}],["Закат",{acc:"#c2410c",pal:5,th:"light",r:14,d:1.15,hf:"Playfair Display",cs:"shadow",bgs:"grad"}],["Патруль",{acc:"#3b82f6",pal:1,th:"dark",r:2,d:.9,bf:"Rubik",bgs:"grid"}],["Мята",{acc:"#0d8a63",pal:3,r:22,d:1.1,hf:"Rubik",bf:"Rubik",cs:"flat",bgs:"grad"}],["Нуар",{acc:"#a78bfa",pal:4,th:"dark",r:10,cs:"shadow",bgs:"grad"}],["Газета",{acc:"#be123c",pal:5,th:"light",r:0,fs:17,hf:"Playfair Display",bf:"PT Serif"}],["Терминал",{acc:"#22c55e",pal:1,th:"dark",r:0,d:.9,hf:"JetBrains Mono",bf:"JetBrains Mono",bgs:"grid"}]];
+let S={...DEF};
+function lum(h){const c=[1,3,5].map(i=>{const v=parseInt(h.slice(i,i+2),16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function h2x(h,s,l){s/=100;l/=100;const f=n=>{const k=(n+h/30)%12,a=s*Math.min(l,1-l);return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1))))};return "#"+[f(0),f(8),f(4)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function clean(o){
+  const r={...DEF};if(!o||typeof o!=="object")return r;
+  if(/^#[0-9a-f]{6}$/i.test(o.acc))r.acc=o.acc;
+  const n=(k,a,b)=>{const v=+o[k];if(isFinite(v)&&o[k]!==""&&o[k]!==null)r[k]=Math.min(b,Math.max(a,v))};n("r",0,28);n("d",.8,1.5);n("fs",14,20);n("mw",720,1300);
+  const e=(k,a)=>{if(a.includes(o[k]))r[k]=o[k]};e("th",["auto","light","dark"]);e("cs",["line","flat","shadow"]);e("bgs",["solid","grad","grid"]);e("hf",HF);e("bf",BF);
+  if(Number.isInteger(o.pal)&&o.pal>=0&&o.pal<PAL.length)r.pal=o.pal;
+  [["ttl",40],["sub",90],["ico",4]].forEach(([k,m])=>{if(typeof o[k]==="string")r[k]=o[k].slice(0,m)});
+  return r;
+}
+function enc(o){const b=new TextEncoder().encode(JSON.stringify(o));let s="";b.forEach(c=>s+=String.fromCharCode(c));return "MIRAGE1:"+btoa(s)}
+function dec(t){t=String(t).trim();if(t.startsWith("MIRAGE1:"))t=t.slice(8);let j;try{const s=atob(t.replace(/\s/g,""));j=JSON.parse(new TextDecoder().decode(Uint8Array.from(s,c=>c.charCodeAt(0))))}catch(_){try{j=JSON.parse(t)}catch(__){return null}}return clean(j)}
+function apply(){
+  const R=document.documentElement,dark=S.th==="dark"||(S.th==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  const pl=PAL[S.pal][dark?2:1],set=(k,v)=>R.style.setProperty(k,v);
+  ["--bg","--panel","--ink","--mute","--line"].forEach((k,i)=>set(k,pl[i]));
+  set("--acc",S.acc);set("--acct",dark?`color-mix(in srgb,${S.acc} 55%,#fff)`:S.acc);set("--onacc",lum(S.acc)>.45?"#111":"#fff");
+  set("--r",S.r+"px");set("--d",S.d);set("--fs",S.fs+"px");set("--mw",S.mw+"px");set("--hf",`"${S.hf}"`);set("--bf",`"${S.bf}"`);
+  R.dataset.theme=dark?"dark":"light";R.dataset.cs=S.cs;R.dataset.bgs=S.bgs;R.style.colorScheme=dark?"dark":"light";
+  $("#ttl").textContent=S.ttl;$("#sub").textContent=S.sub;$("#ico").textContent=S.ico;document.title=S.ttl+" — Законодательство";
+  try{localStorage.setItem("mirage_skin",JSON.stringify(S))}catch(_){}
+  window.MirageCloud?.scheduleSettingsSave();
+}
+const opt=(k,items)=>items.map(([v,n,st])=>`<button class="chip" data-k="${k}" data-v="${v}" ${st?`style="${st}"`:""}>${n}</button>`).join("");
+$("#v-design").innerHTML=`<div class="hero"><h2 style="margin:0 0 4px;font-size:20px">Оформление сайта</h2><p class="sub">Меняйте всё: изменения видны сразу и сохраняются в этом браузере. Готовый стиль можно скопировать кодом и отправить другому.</p></div>
+<div class="dgrid">
+<section class="dsec"><h3>Готовые стили</h3><div class="row" style="margin-top:8px">${PRE.map((p,i)=>`<button class="chip" data-pre="${i}">${p[0]}</button>`).join("")}<button class="chip" id="drnd">Случайный стиль</button></div>
+<div class="card" style="margin:16px 0 0"><h2><span class="num">6.2</span><span class="b R">Региональное</span>Так выглядит статья</h2><p>Пример карточки с вашими настройками шрифта, цвета и формы.</p><div class="meta"><span>Розыск <b>4</b></span><span class="pen">до 40 мес.</span><span class="pen">штраф 5 000$</span></div></div></section>
+<section class="dsec"><h3>Цвета</h3><span class="f">Акцент</span><div class="row"><input type="color" id="acc" data-k="acc" aria-label="Свой цвет">${SWS.map(c=>`<button class="sw" data-k="acc" data-v="${c}" style="background:${c}" aria-label="${c}"></button>`).join("")}</div>
+<span class="f">Палитра фона</span><div class="row">${PAL.map((p,i)=>`<button class="chip" data-k="pal" data-v="${i}"><span class="pal">${p[1].slice(0,3).map(c=>`<i class="dot" style="background:${c}"></i>`).join("")}</span>${p[0]}</button>`).join("")}</div>
+<span class="f">Тема</span><div class="row">${opt("th",[["auto","Авто"],["light","Светлая"],["dark","Тёмная"]])}</div>
+<span class="f">Фон страницы</span><div class="row">${opt("bgs",[["solid","Однотонный"],["grad","Градиент"],["grid","Сетка"]])}</div></section>
+<section class="dsec"><h3>Форма</h3><span class="f">Стиль карточек</span><div class="row">${opt("cs",[["line","С рамкой"],["flat","Плоские"],["shadow","С тенью"]])}</div>
+<span class="f">Скругление: <b id="o-r"></b> px</span><input type="range" data-k="r" min="0" max="28">
+<span class="f">Плотность карточек: <b id="o-d"></b></span><input type="range" data-k="d" min="0.8" max="1.5" step="0.05">
+<span class="f">Размер текста: <b id="o-fs"></b> px</span><input type="range" data-k="fs" min="14" max="20">
+<span class="f">Ширина страницы: <b id="o-mw"></b> px</span><input type="range" data-k="mw" min="720" max="1300" step="20"></section>
+<section class="dsec"><h3>Текст и шрифты</h3><span class="f">Шрифт заголовков</span><div class="row">${opt("hf",HF.map(f=>[f,f,`font-family:'${f}'`]))}</div>
+<span class="f">Шрифт текста</span><div class="row">${opt("bf",BF.map(f=>[f,f,`font-family:'${f}'`]))}</div>
+<span class="f">Название сайта</span><input data-k="ttl" maxlength="40" style="width:100%"><span class="f">Подпись</span><input data-k="sub" maxlength="90" style="width:100%"><span class="f">Значок (эмодзи)</span><input data-k="ico" maxlength="4" style="width:90px"></section>
+<section class="dsec" style="grid-column:1/-1"><h3>Поделиться и применить</h3><span class="f">Код вашего стиля</span><textarea id="code" readonly aria-label="Код стиля"></textarea>
+<div class="row" style="margin-top:8px"><button class="chip" id="cc">Скопировать код</button><button class="chip" id="cl">Скопировать ссылку</button></div>
+<span class="f">Вставьте чужой код и примените</span><textarea id="imp" placeholder="MIRAGE1:..." aria-label="Код для импорта"></textarea>
+<div class="row" style="margin-top:8px"><button class="chip" id="ia">Применить код</button><button class="chip" id="rs">Сбросить к стандартному</button></div>
+<p class="ok" id="msg" aria-live="polite"></p>
+<span class="f">Мои стили в этом браузере</span><div class="row"><input id="sn" placeholder="Название стиля" maxlength="30"><button class="chip" id="ss">Сохранить текущий</button></div><div id="sl" style="margin-top:8px"></div></section>
+</div>`;
+let MSG=0;const say=t=>{$("#msg").textContent=t;clearTimeout(MSG);MSG=setTimeout(()=>$("#msg").textContent="",2500)};
+const SAVED=()=>{try{return JSON.parse(localStorage.getItem("mirage_styles"))||[]}catch(_){return[]}};
+function drawSaved(){const L=SAVED();$("#sl").innerHTML=L.length?L.map((x,i)=>`<div class="row" style="margin:4px 0"><b>${esc(x.name)}</b><button class="chip" data-load="${i}">Применить</button><button class="chip" data-del="${i}">Удалить</button></div>`).join(""):`<span class="lbl">Пока пусто.</span>`}
+function sync(){
+  const D=$("#v-design");
+  D.querySelectorAll("[data-k][data-v]").forEach(b=>b.setAttribute("aria-pressed",String(String(S[b.dataset.k])===b.dataset.v)));
+  D.querySelectorAll("input[data-k]").forEach(i=>{if(document.activeElement!==i)i.value=S[i.dataset.k]});
+  ["r","d","fs","mw"].forEach(k=>$("#o-"+k).textContent=S[k]);
+  $("#code").value=enc(S);
+}
+function setS(o){S=clean(o);apply();sync()}
+$("#v-design").addEventListener("input",e=>{const k=e.target.dataset.k;if(!k||e.target.dataset.v!==undefined)return;S[k]=e.target.type==="range"?+e.target.value:e.target.value;S=clean(S);apply();sync()});
+$("#v-design").addEventListener("click",async e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.k&&b.dataset.v!==undefined){S[b.dataset.k]=b.dataset.k==="pal"?+b.dataset.v:b.dataset.v;setS(S);return}
+  if(b.dataset.pre!==undefined){setS({...DEF,...PRE[b.dataset.pre][1]});return}
+  if(b.id==="drnd"){const p=a=>a[Math.floor(Math.random()*a.length)];setS({...DEF,acc:h2x(Math.floor(Math.random()*360),65,40),pal:Math.floor(Math.random()*PAL.length),th:p(["auto","light","dark"]),r:Math.floor(Math.random()*29),d:+(.85+Math.random()*.5).toFixed(2),hf:p(HF),bf:p(BF),cs:p(["line","flat","shadow"]),bgs:p(["solid","grad","grid"])});return}
+  if(b.id==="rs"){setS(DEF);say("Стиль сброшен");return}
+  if(b.id==="cc"||b.id==="cl"){
+    const t=b.id==="cc"?enc(S):(location.origin!=="null"?location.origin:"")+location.pathname+"?s="+encodeURIComponent(enc(S));
+    try{await navigator.clipboard.writeText(t);say(b.id==="cc"?"Код скопирован":"Ссылка скопирована")}catch(_){$("#code").select();say("Скопируйте код вручную: он выделен в поле")}return}
+  if(b.id==="ia"){const o=dec($("#imp").value);if(!o){say("Не удалось прочитать код. Проверьте, что вставили его целиком.");return}setS(o);$("#imp").value="";say("Стиль применён");return}
+  if(b.id==="ss"){const n=$("#sn").value.trim()||("Стиль "+(SAVED().length+1));const L=SAVED();L.push({name:n.slice(0,30),s:S});try{localStorage.setItem("mirage_styles",JSON.stringify(L.slice(-12)))}catch(_){}window.MirageCloud?.saveStyles(L.slice(-12));$("#sn").value="";drawSaved();say("Сохранено");return}
+  if(b.dataset.load!==undefined){const x=SAVED()[b.dataset.load];if(x)setS(x.s);return}
+  if(b.dataset.del!==undefined){const L=SAVED();L.splice(+b.dataset.del,1);try{localStorage.setItem("mirage_styles",JSON.stringify(L))}catch(_){}window.MirageCloud?.saveStyles(L);drawSaved()}
+});
+// ===== переключатель вкладок =====
+function show(v){
+  if(v==="laws")v="forum";
+  if(!["forum","favorites","design","account","users","messages","notifications"].includes(v))v="forum";
+  document.querySelectorAll(".views button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v)));
+  ["forum","favorites","design","account","users","messages","notifications"].forEach(k=>{const el=$("#v-"+k);if(el)el.hidden=v!==k;});
+  if(v==="favorites"&&window.MirageCloud)window.MirageCloud.renderFavorites();
+  if(v==="account"&&window.MirageCloud)window.MirageCloud.renderAccount();
+  if(v==="users"&&window.MirageSocial)window.MirageSocial.load();
+  if(v==="messages"&&window.MirageMessages)window.MirageMessages.load();
+  if(v==="notifications")window.MirageExtras?.loadNotifications();
+  if(v==="forum"){window.MirageExtras?.loadForum();window.MirageAdmin?.open();}
+  scrollTo(0,0);
+}
+
+// Подвкладки внутри Форума: законы / обсуждения / управление
+function showForumSub(sub){
+  if(!["laws","discuss","admin"].includes(sub))sub="laws";
+  document.querySelectorAll("#forum-subnav [data-forum-sub]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.forumSub===sub)));
+  const map={laws:"#forum-sub-laws",discuss:"#forum-sub-discuss",admin:"#forum-sub-admin"};
+  Object.entries(map).forEach(([k,sel])=>{const el=$(sel);if(el)el.hidden=k!==sub;});
+  if(sub==="discuss")window.MirageExtras?.loadForum();
+  if(sub==="admin")window.MirageAdmin?.open();
+  if(sub==="laws")render();
+}
+document.getElementById("forum-subnav")?.addEventListener("click",e=>{
+  const b=e.target.closest("[data-forum-sub]");
+  if(b)showForumSub(b.dataset.forumSub);
+});
+
+document.querySelector(".views").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.v)});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(S.th==="auto")apply()});
+// ===== запуск =====
+try{const s=JSON.parse(localStorage.getItem("mirage_skin"));if(s)S=clean(s)}catch(_){}
+try{const p=new URLSearchParams(location.search).get("s");if(p){const o=dec(p);if(o){S=o;show("design");setTimeout(()=>say("Применён стиль из ссылки"),50)}}}catch(_){}
+apply();sync();drawSaved();render();
+</script>
+
+<script>
+// ===== Аккаунты, облачные настройки и избранное (Supabase) =====
+(() => {
+  // Укажите URL проекта и публичный ключ Supabase. Секретный service_role сюда добавлять нельзя.
+  const SUPABASE_URL = "https://sarfipfoetkttqpwcmdu.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+  const configured = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL)
+    && !SUPABASE_URL.includes("YOUR_PROJECT_ID")
+    && SUPABASE_ANON_KEY.length > 20
+    && !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE");
+  const SESSION_KEY = "mirage_supabase_session";
+  const state = { session: null, profile: null, favorites: new Set(), favoriteOrder: [], loadingProfile: false, saveTimer: null, mode: "login" };
+  const $ = (s) => document.querySelector(s);
+  const note = (text, kind="") => { const el=$("#auth-message"); if(el){el.textContent=text;el.className="account-note"+(kind?" "+kind:"");} };
+  const uid = () => state.session?.user?.id || null;
+  const keyOf = (it) => it.c + "|" + it.n;
+  const apiBase = () => SUPABASE_URL.replace(/\/$/, "");
+
+  async function parseResponse(response) {
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = { message: text }; }
+    if (!response.ok) {
+      const message = data?.msg || data?.message || data?.error_description || data?.error || `Ошибка ${response.status}`;
+      throw new Error(message);
+    }
+    return data;
+  }
+  async function authRequest(path, body) {
+    const response = await fetch(`${apiBase()}/auth/v1/${path}`, {
+      method: "POST", headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY }, body: JSON.stringify(body)
+    });
+    return parseResponse(response);
+  }
+  function saveSession(session) {
+    if (!session?.access_token) return;
+    let expiry = Number(session.expires_at || 0);
+    if (expiry > 0 && expiry < 1000000000000) expiry *= 1000; // Supabase может отдавать Unix-время в секундах.
+    const normalized = { ...session, expires_at: expiry || Date.now() + (Number(session.expires_in || 3600) * 1000) };
+    state.session = normalized;
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(normalized)); } catch (_) {}
+  }
+  function clearSession() {
+    state.session = null; state.profile = null; state.favorites.clear(); state.favoriteOrder=[];
+    try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+  }
+  async function ensureToken() {
+    if (!state.session?.access_token) throw new Error("Сначала войдите в аккаунт.");
+    if (Number(state.session.expires_at || 0) > Date.now() + 60000) return state.session.access_token;
+    if (!state.session.refresh_token) throw new Error("Сессия истекла. Войдите заново.");
+    const refreshed = await authRequest("token?grant_type=refresh_token", { refresh_token: state.session.refresh_token });
+    saveSession(refreshed);
+    return state.session.access_token;
+  }
+  async function rest(path, options={}) {
+    if (!configured) throw new Error("Сначала подключите Supabase в index.html.");
+    const token = await ensureToken();
+    const response = await fetch(`${apiBase()}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
+    return parseResponse(response);
+  }
+  async function fetchProfile() {
+    const rows = await rest(`profiles?select=id,display_name,settings,saved_styles,avatar_url,banner_url,bio,profile_visibility,show_online&id=eq.${encodeURIComponent(uid())}`, { method: "GET" });
+    return rows?.[0] || { display_name: "", settings: {}, saved_styles: [] };
+  }
+  async function patchProfile(fields) {
+    await rest(`profiles?id=eq.${encodeURIComponent(uid())}`, {
+      method: "PATCH", headers: { "Prefer": "return=minimal" },
+      body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() })
+    });
+  }
+  function renderProfileCustomization() {
+    const p=state.profile||{};
+    const av=p.avatar_url||""; const ban=p.banner_url||"";
+    const img=$("#profile-avatar-preview"); if(img) img.src=av||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Crect width='100%25' height='100%25' fill='%239aa8bd'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle' fill='white'%3E%E2%97%8F%3C/text%3E%3C/svg%3E";
+    const banner=$("#profile-banner-preview"); if(banner) banner.style.backgroundImage=ban?`url(${JSON.stringify(ban)})`:"none";
+    $("#profile-bio").value=p.bio||""; if($("#profile-visibility"))$("#profile-visibility").value=p.profile_visibility||"public"; if($("#profile-show-online"))$("#profile-show-online").checked=p.show_online!==false; $("#profile-preview-name").textContent=p.display_name||state.session?.user?.email||"Пользователь"; $("#profile-preview-bio").textContent=p.bio||"Описание пока не добавлено";
+  }
+  async function uploadProfileImage(file, kind) {
+    if(!file) return null;
+    const allowed=["image/png","image/jpeg","image/gif","image/webp"];
+    if(!allowed.includes(file.type)) throw new Error("Поддерживаются только PNG, JPG, JPEG, GIF и WebP.");
+    if(file.size>5*1024*1024) throw new Error("Файл больше 5 МБ. Выберите изображение поменьше.");
+    const token=await ensureToken(); const userId=uid();
+    const ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const path=`${userId}/${kind}-${Date.now()}.${ext}`;
+    const response=await fetch(`${apiBase()}/storage/v1/object/mirage-profiles/${path}`,{method:"POST",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,"Content-Type":file.type,"x-upsert":"true"},body:file});
+    await parseResponse(response);
+    return `${apiBase()}/storage/v1/object/public/mirage-profiles/${path}`;
+  }
+  async function saveCustomProfile(e) {
+    e.preventDefault(); const status=$("#profile-custom-note"); const btn=$("#profile-custom-save");
+    if(!state.session){status.textContent="Сначала войдите в аккаунт.";return;}
+    btn.disabled=true; status.textContent="Сохраняем профиль…";
+    try {
+      const fields={bio:$("#profile-bio").value.trim(),profile_visibility:$("#profile-visibility")?.value||"public",show_online:$("#profile-show-online")?.checked!==false};
+      const avatar=$("#profile-avatar-file").files[0], banner=$("#profile-banner-file").files[0];
+      if(avatar) fields.avatar_url=await uploadProfileImage(avatar,"avatar");
+      if(banner) fields.banner_url=await uploadProfileImage(banner,"banner");
+      await patchProfile(fields); state.profile={...(state.profile||{}),...fields};
+      $("#profile-avatar-file").value=""; $("#profile-banner-file").value="";
+      renderProfileCustomization(); status.textContent="Профиль сохранён.";
+    } catch(err){status.textContent="Не удалось сохранить: "+err.message;}
+    finally{btn.disabled=false;}
+  }
+  $("#profile-custom-form")?.addEventListener("submit",saveCustomProfile);
+  $("#profile-bio")?.addEventListener("input",e=>{$("#profile-preview-bio").textContent=e.target.value||"Описание пока не добавлено"});
+  async function loadFavorites() {
+    const rows = await rest(`favorites?select=code_key&user_id=eq.${encodeURIComponent(uid())}&order=created_at.desc`, { method: "GET" });
+    state.favoriteOrder = (rows || []).map(x => x.code_key);
+    state.favorites = new Set(state.favoriteOrder);
+  }
+  function indexByKey() {
+    const map = new Map();
+    IDX.forEach(it => map.set(keyOf(it), it));
+    return map;
+  }
+  function renderFavorites() {
+    const root=$("#fav-list"); if(!root)return;
+    if(!configured) { root.innerHTML='<p class="fav-empty">Для избранного нужно подключить базу данных Supabase. После настройки здесь будут ваши сохранённые статьи.</p>'; return; }
+    if(!state.session) { root.innerHTML='<p class="fav-empty">Войдите в аккаунт, чтобы сохранять статьи в избранное. <button class="account-link" type="button" data-go-account>Перейти ко входу</button></p>'; return; }
+    const map=indexByKey();
+    const entries=state.favoriteOrder.map(k=>map.get(k)).filter(Boolean);
+    root.innerHTML=entries.length ? entries.map(it=>card(it,true)).join("") : '<p class="fav-empty">Пока ничего не добавлено. Нажимайте ☆ на карточках законов, чтобы сохранить важные статьи здесь.</p>';
+  }
+  function renderAccount() {
+    const guest=$("#auth-guest"), user=$("#auth-user");
+    if(!guest||!user)return;
+    if(!configured) {
+      guest.hidden=false; user.hidden=true;
+      $("#auth-title").textContent="База данных ещё не подключена";
+      $("#auth-description").textContent="Создайте проект Supabase, выполните SQL из файла supabase_schema.sql и вставьте URL и публичный ключ проекта в начало облачного скрипта index.html.";
+      $("#auth-form").hidden=true;
+      note("Регистрация станет доступна после подключения Supabase.");
+      return;
+    }
+    $("#auth-form").hidden=false;
+    if(state.session) {
+      guest.hidden=true; user.hidden=false;
+      $("#user-email").textContent=state.session.user?.email || "Вы вошли в аккаунт";
+      $("#profile-name").value=state.profile?.display_name || "";
+      note("Аккаунт подключён. Избранное и настройки синхронизируются.","success");
+      renderProfileCustomization();
+    } else {
+      guest.hidden=false; user.hidden=true;
+      const signup=state.mode==="signup";
+      $("#auth-title").textContent=signup?"Создание аккаунта":"Вход в аккаунт";
+      $("#auth-description").textContent=signup?"Зарегистрируйтесь, чтобы сохранять избранное и настройки в своём профиле.":"Войдите, чтобы синхронизировать избранное и оформление между устройствами.";
+      $("#display-name-row").hidden=!signup;
+      $("#auth-password").autocomplete=signup?"new-password":"current-password";
+      $("#auth-submit").textContent=signup?"Зарегистрироваться":"Войти";
+      $("#auth-toggle").textContent=signup?"Уже есть аккаунт? Войти":"Создать аккаунт";
+    }
+  }
+  async function activateSession(session) {
+    saveSession(session);
+    const token=await ensureToken();
+    const response=await fetch(`${apiBase()}/auth/v1/user`, { headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":`Bearer ${token}`} });
+    const user=await parseResponse(response);
+    state.session.user=user;
+    saveSession(state.session);
+    window.dispatchEvent(new Event("mirage-auth-changed"));
+    state.loadingProfile=true;
+    state.profile=await fetchProfile();
+    if(state.profile.settings && Object.keys(state.profile.settings).length) {
+      S=clean(state.profile.settings); apply(); sync();
+    }
+    try { localStorage.setItem("mirage_styles",JSON.stringify(Array.isArray(state.profile.saved_styles)?state.profile.saved_styles:[])); } catch (_) {}
+    drawSaved();
+    await loadFavorites();
+    state.loadingProfile=false;
+    render(); renderFavorites(); renderAccount();
+  }
+  async function signOut() {
+    try { if(state.session?.access_token) await fetch(`${apiBase()}/auth/v1/logout`, {method:"POST",headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":`Bearer ${state.session.access_token}`}}); } catch (_) {}
+    clearSession(); window.dispatchEvent(new Event("mirage-auth-changed")); render(); renderFavorites(); renderAccount();
+    note("Вы вышли из аккаунта.","success");
+  }
+  function queueSettingsSave() {
+    if(!configured || !state.session || state.loadingProfile)return;
+    clearTimeout(state.saveTimer);
+    state.saveTimer=setTimeout(async()=>{
+      try { await patchProfile({settings:S}); }
+      catch(e) { note("Не удалось сохранить настройки: "+e.message,"error"); }
+    },700);
+  }
+  async function saveStyles(styles) {
+    if(!configured || !state.session || state.loadingProfile)return;
+    try { await patchProfile({saved_styles:styles}); }
+    catch(e) { note("Не удалось синхронизировать стили: "+e.message,"error"); }
+  }
+  async function toggleFavorite(key) {
+    if(!configured) { show("account"); note("Сначала подключите Supabase, чтобы включить избранное."); return; }
+    if(!state.session) { show("account"); note("Войдите в аккаунт, чтобы добавлять статьи в избранное."); return; }
+    const wasSaved=state.favorites.has(key);
+    try {
+      if(wasSaved) {
+        await rest(`favorites?user_id=eq.${encodeURIComponent(uid())}&code_key=eq.${encodeURIComponent(key)}`, {method:"DELETE",headers:{"Prefer":"return=minimal"}});
+        state.favorites.delete(key); state.favoriteOrder=state.favoriteOrder.filter(x=>x!==key);
+      } else {
+        await rest("favorites", {method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify({user_id:uid(),code_key:key})});
+        state.favorites.add(key); state.favoriteOrder.unshift(key);
+      }
+      render(); renderFavorites();
+    } catch(e) { note("Не удалось обновить избранное: "+e.message,"error"); }
+  }
+
+  window.MirageCloud = {
+    isFavorite: (it) => state.favorites.has(keyOf(it)),
+    renderFavorites,
+    renderAccount,
+    saveStyles,
+    scheduleSettingsSave: queueSettingsSave
+  };
+
+  $("#list").addEventListener("click", e => {
+    const b=e.target.closest("[data-fav]"); if(!b)return;
+    e.preventDefault(); e.stopPropagation();
+    let key; try{key=decodeURIComponent(b.dataset.fav)}catch(_){return;}
+    toggleFavorite(key);
+  });
+  $("#fav-list").addEventListener("click", e => {
+    const b=e.target.closest("[data-fav]");
+    if(b){e.preventDefault();let key;try{key=decodeURIComponent(b.dataset.fav)}catch(_){return;}toggleFavorite(key);return;}
+    if(e.target.closest("[data-go-account]"))show("account");
+  });
+  $("#auth-toggle").addEventListener("click",()=>{state.mode=state.mode==="login"?"signup":"login";renderAccount();note("");});
+  $("#auth-form").addEventListener("submit",async e=>{
+    e.preventDefault(); if(!configured)return;
+    const email=$("#auth-email").value.trim(), password=$("#auth-password").value;
+    const submit=$("#auth-submit"); submit.disabled=true; note("Обрабатываем запрос…");
+    try {
+      if(state.mode==="signup") {
+        const display_name=$("#auth-name").value.trim();
+        const result=await authRequest("signup",{email,password,data:{display_name}});
+        if(result?.access_token) { await activateSession(result); note("Аккаунт создан. Добро пожаловать!","success"); }
+        else { state.mode="login"; renderAccount(); note("Аккаунт создан. Проверьте почту и подтвердите адрес, затем войдите.","success"); }
+      } else {
+        const result=await authRequest("token?grant_type=password",{email,password});
+        await activateSession(result); note("Вы успешно вошли.","success");
+      }
+    } catch(err) { note(err.message,"error"); }
+    finally { submit.disabled=false; }
+  });
+  $("#profile-form").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const name=$("#profile-name").value.trim();
+    try { await patchProfile({display_name:name}); state.profile={...(state.profile||{}),display_name:name}; note("Профиль сохранён.","success"); }
+    catch(err) { note("Не удалось сохранить профиль: "+err.message,"error"); }
+  });
+  $("#auth-logout").addEventListener("click",signOut);
+
+  async function init() {
+    renderAccount(); renderFavorites();
+    if(!configured)return;
+    // Поддержка возврата из письма подтверждения Supabase (implicit flow).
+    try {
+      const hash=new URLSearchParams(location.hash.replace(/^#/ ,""));
+      const access_token=hash.get("access_token"), refresh_token=hash.get("refresh_token");
+      if(access_token&&refresh_token) {
+        saveSession({access_token,refresh_token,expires_in:Number(hash.get("expires_in")||3600)});
+        history.replaceState(null,"",location.pathname+location.search);
+      }
+    } catch (_) {}
+    try {
+      const raw=localStorage.getItem(SESSION_KEY);
+      if(raw) {
+        const session=JSON.parse(raw); saveSession(session);
+        await activateSession(state.session);
+      }
+    } catch(e) { clearSession(); renderAccount(); note("Не удалось восстановить сессию. Войдите снова: "+e.message,"error"); }
+    renderAccount(); renderFavorites(); render();
+  }
+  init();
+})();
+</script>
+
+
+<script>
+// ===== Каталог пользователей и друзья Mirage =====
+(() => {
+ const URL_BASE="https://sarfipfoetkttqpwcmdu.supabase.co", KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+ const $=s=>document.querySelector(s), session=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}};
+ let busy=false, people=[], relations=[], activeProfileId=null;
+ async function token(){let s=session();if(!s?.access_token)throw Error("Сначала войдите в аккаунт.");if(Number(s.expires_at||0)<=Date.now()+60000){if(!s.refresh_token)throw Error("Сессия истекла. Войдите заново.");const r=await fetch(URL_BASE+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json();if(!r.ok)throw Error(d.msg||d.message||"Не удалось обновить сессию.");s={...s,...d,expires_at:Date.now()+Number(d.expires_in||3600)*1000};localStorage.setItem("mirage_supabase_session",JSON.stringify(s));}return s.access_token;}
+ async function api(path,method="GET",body=null){const t=await token();const r=await fetch(URL_BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:"return=minimal"},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
+ const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function presenceMarkup(p){if(p.show_online===false)return `<div class="presence-line">Статус скрыт</div>`;const online=p.last_seen_at&&(Date.now()-new Date(p.last_seen_at).getTime()<120000);const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"давно";return `<div class="presence-line"><i class="presence-dot ${online?"online":""}"></i>${online?"В сети":"Был(а): "+last}</div>`;}
+ function card(p, action=""){const av=p.avatar_url?`<img class="uc-avatar" src="${esc(p.avatar_url)}" alt="Аватар">`:`<div class="uc-avatar"></div>`;const ban=p.banner_url?`style="background-image:url('${esc(p.banner_url).replace(/'/g,"%27") }')"`:"";return `<article class="user-card"><div class="uc-banner" ${ban}></div><div class="uc-body"><div class="uc-head">${av}<div class="uc-name"><button type="button" data-profile-open="${esc(p.id)}">${esc(p.display_name||"Пользователь")}</button></div></div><div class="uc-bio">${esc(p.bio||"")}</div>${presenceMarkup(p)}${action}</div></article>`;}
+ function filteredPeople(){const q=($('#users-search')?.value||"").trim().toLocaleLowerCase("ru");return q?people.filter(p=>(p.display_name||"").toLocaleLowerCase("ru").includes(q)||(p.bio||"").toLocaleLowerCase("ru").includes(q)):people;}
+ function renderPeople(){const my=me(),shown=filteredPeople(),list=$("#users-list");list.innerHTML=shown.length?shown.map(p=>card(p,p.id===my?`<div class="account-actions"><span class="account-note">Это вы</span></div>`:`<div class="account-actions">${actionFor(p)}</div>`)).join(""):`<p class="account-note">${people.length?"Ничего не найдено.":"Пока пользователей нет."}</p>`;$("#users-search-count").textContent=people.length?`Показано: ${shown.length} из ${people.length}`:"";}
+ function openProfile(id){const p=people.find(x=>x.id===id);if(!p)return;activeProfileId=id;const modal=$("#public-profile-modal"),ban=$("#public-profile-banner"),av=$("#public-profile-avatar");ban.style.backgroundImage=p.banner_url?`url(${JSON.stringify(p.banner_url)})`:"";av.src=p.avatar_url||"";av.hidden=!p.avatar_url;$("#public-profile-name").textContent=p.display_name||"Пользователь";$("#public-profile-bio").innerHTML=esc(p.bio||"Пользователь пока ничего не рассказал о себе.")+presenceMarkup(p);$("#public-profile-date").textContent=p.created_at?"В Mirage с "+new Date(p.created_at).toLocaleDateString("ru-RU"):"";$("#public-profile-bio").insertAdjacentHTML("afterend",presenceMarkup(p));$("#public-profile-actions").innerHTML=p.id===me()?"<span class='account-note'>Это ваш профиль</span>":actionFor(p);modal.hidden=false;}
+ function closeProfile(){$("#public-profile-modal").hidden=true;}
+ function relFor(id){return relations.find(r=>r.requester_id===id||r.addressee_id===id)||null;}
+ function actionFor(p){const r=relFor(p.id);if(!r)return `<button class="account-btn" data-friend-add="${p.id}">Добавить в друзья</button>`;if(r.status==="accepted")return `<button class="account-btn secondary" data-friend-remove="${r.id}">У вас в друзьях</button>`;if(r.status==="pending"){if(r.addressee_id===me())return `<button class="account-btn" data-friend-accept="${r.id}">Принять заявку</button>`;return `<span class="account-note">Заявка отправлена</span>`;}if(r.status==="rejected"&&r.requester_id===me())return `<button class="account-btn" data-friend-resend="${r.id}">Отправить снова</button>`;return `<span class="account-note">Заявка отклонена</span>`;}
+ function me(){return session()?.user?.id||null;}
+ function render(){const my=me();const list=$("#users-list"),incoming=$("#friend-requests"),friends=$("#friends-list");if(!my){list.innerHTML="";incoming.innerHTML="<p class='account-note'>Войдите в аккаунт, чтобы увидеть заявки.</p>";friends.innerHTML="<p class='account-note'>Войдите в аккаунт, чтобы увидеть друзей.</p>";return;}
+  renderPeople();
+  const ins=relations.filter(r=>r.status==="pending"&&r.addressee_id===my);const badge=$("#social-notice-count");badge.textContent=String(ins.length);badge.hidden=!ins.length;incoming.innerHTML=ins.length?ins.map(r=>{const p=people.find(x=>x.id===r.requester_id);return p?card(p,`<div class="account-actions"><button class="account-btn" data-friend-accept="${r.id}">Принять</button><button class="account-btn secondary" data-friend-reject="${r.id}">Отклонить</button></div>`):""}).join(""):`<p class="account-note">Новых заявок нет.</p>`;
+  const fs=relations.filter(r=>r.status==="accepted");friends.innerHTML=fs.length?fs.map(r=>{const id=r.requester_id===my?r.addressee_id:r.requester_id,p=people.find(x=>x.id===id);return p?card(p,`<div class="account-actions"><button class="account-btn secondary" data-friend-remove="${r.id}">Удалить из друзей</button></div>`):""}).join(""):`<p class="account-note">Пока нет друзей.</p>`;
+ }
+ async function load(){const note=$("#users-note");if(!me()){note.textContent="Сначала войдите в аккаунт во вкладке «Аккаунт».";render();return;}note.textContent="Загружаем пользователей…";try{const [p,r]=await Promise.all([api("mirage_public_profiles?select=id,display_name,avatar_url,banner_url,bio,created_at,last_seen_at,show_online&order=display_name.asc"),api("mirage_friendships?select=id,requester_id,addressee_id,status,created_at&or=(requester_id.eq."+me()+",addressee_id.eq."+me()+")")]);people=p||[];relations=r||[];note.textContent=`Пользователей в Mirage: ${people.length}`;render();}catch(e){note.textContent="Не удалось загрузить: "+e.message;}}
+ async function act(button){if(busy)return;busy=true;button.disabled=true;try{if(button.dataset.friendAdd){await api("mirage_friendships","POST",{requester_id:me(),addressee_id:button.dataset.friendAdd,status:"pending"});}else if(button.dataset.friendResend){await api("mirage_friendships?id=eq."+button.dataset.friendResend,"PATCH",{status:"pending",updated_at:new Date().toISOString()});}else if(button.dataset.friendAccept){await api("mirage_friendships?id=eq."+button.dataset.friendAccept,"PATCH",{status:"accepted",updated_at:new Date().toISOString()});}else if(button.dataset.friendReject){await api("mirage_friendships?id=eq."+button.dataset.friendReject,"PATCH",{status:"rejected",updated_at:new Date().toISOString()});}else if(button.dataset.friendRemove){await api("mirage_friendships?id=eq."+button.dataset.friendRemove,"DELETE");}await load();}catch(e){$("#users-note").textContent="Не удалось выполнить действие: "+e.message;}finally{busy=false;button.disabled=false;}}
+ $("#users-list")?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b)});
+ ["#friend-requests","#friends-list"].forEach(sel=>$(sel)?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b)}));
+ $("#users-refresh")?.addEventListener("click",load);
+ $("#users-search")?.addEventListener("input",renderPeople);
+ ["#users-list","#friend-requests","#friends-list"].forEach(sel=>$(sel)?.addEventListener("click",e=>{const b=e.target.closest("[data-profile-open]");if(b)openProfile(b.dataset.profileOpen);}));
+ $("#public-profile-actions")?.addEventListener("click",e=>{const b=e.target.closest("button[data-friend-add],button[data-friend-resend],button[data-friend-accept],button[data-friend-reject],button[data-friend-remove]");if(b)act(b).then(()=>{if(activeProfileId)openProfile(activeProfileId);});});
+ $("#public-profile-close")?.addEventListener("click",closeProfile);
+ $("#public-profile-modal")?.addEventListener("click",e=>{if(e.target.id==="public-profile-modal")closeProfile();});
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfile();});
+ window.MirageSocial={load};
+})();
+</script>
+
+
+
+<script>
+// ===== Личные сообщения Mirage =====
+(() => {
+ const URL_BASE="https://sarfipfoetkttqpwcmdu.supabase.co", KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+ const $=s=>document.querySelector(s), session=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}};
+ let friends=[], selected=null, messages=[], timer=null, busy=false;
+ const me=()=>session()?.user?.id||null;
+ const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ async function token(){let s=session();if(!s?.access_token)throw Error("Сначала войдите в аккаунт.");if(Number(s.expires_at||0)<=Date.now()+60000){if(!s.refresh_token)throw Error("Сессия истекла. Войдите заново.");const r=await fetch(URL_BASE+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json();if(!r.ok)throw Error(d.msg||d.message||"Не удалось обновить сессию.");s={...s,...d,expires_at:Date.now()+Number(d.expires_in||3600)*1000};localStorage.setItem("mirage_supabase_session",JSON.stringify(s));}return s.access_token;}
+ async function api(path,method="GET",body=null,prefer="return=minimal"){const t=await token(),r=await fetch(URL_BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:prefer},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
+ function note(t){$("#messages-note").textContent=t;}
+ function fmt(t){return new Date(t).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
+ function renderContacts(){const box=$("#messages-contacts");box.innerHTML=friends.length?friends.map(f=>`<button class="message-contact" type="button" data-chat="${f.id}" aria-current="${selected===f.id}">${f.avatar_url?`<img src="${esc(f.avatar_url)}" alt="">`:`<span class="mc-avatar"></span>`}<span>${esc(f.display_name||"Пользователь")}<small>${f.unread?"Непрочитанных: "+f.unread:"Открыть переписку"}</small></span></button>`).join(""):`<p class="account-note" style="padding:12px">У вас пока нет друзей. Добавьте пользователей в разделе «Люди».</p>`;}
+ function renderMessages(){const box=$("#messages-list");box.innerHTML=messages.length?messages.map(m=>`<div class="message-bubble ${m.sender_id===me()?"mine":""}">${esc(m.body)}<span class="message-time">${fmt(m.created_at)}${m.sender_id===me()&&m.read_at?" · Прочитано":""}</span></div>`).join(""):`<p class="account-note">Пока нет сообщений. Напишите первым!</p>`;box.scrollTop=box.scrollHeight;}
+ async function loadFriends(){const [rels,profiles]=await Promise.all([api("mirage_friendships?select=requester_id,addressee_id&status=eq.accepted&or=(requester_id.eq."+me()+",addressee_id.eq."+me()+")"),api("mirage_public_profiles?select=id,display_name,avatar_url")]);const ids=rels.map(r=>r.requester_id===me()?r.addressee_id:r.requester_id);friends=profiles.filter(p=>ids.includes(p.id)).map(p=>({...p,unread:0}));}
+ async function unreadCounts(){if(!friends.length)return;const rows=await api("mirage_messages?select=sender_id&recipient_id=eq."+me()+"&read_at=is.null");friends.forEach(f=>f.unread=rows.filter(m=>m.sender_id===f.id).length);const n=friends.reduce((a,f)=>a+f.unread,0),b=$("#messages-unread-count");b.textContent=String(n);b.hidden=!n;renderContacts();}
+ async function openChat(id){selected=id;const f=friends.find(x=>x.id===id);if(!f)return;$("#messages-chat-head").textContent=f.display_name||"Переписка";$("#messages-input").disabled=false;$("#messages-send").disabled=false;renderContacts();await refreshChat();}
+ async function refreshChat(){if(!selected)return;const id=selected;try{const filter="&or=(and(sender_id.eq."+me()+",recipient_id.eq."+id+"),and(sender_id.eq."+id+",recipient_id.eq."+me()+"))";messages=await api("mirage_messages?select=id,sender_id,recipient_id,body,created_at,read_at"+filter+"&order=created_at.asc&limit=300");const unread=messages.filter(m=>m.recipient_id===me()&&!m.read_at).map(m=>m.id);if(unread.length){await api("mirage_messages?id=in.("+unread.join(",")+")","PATCH",{read_at:new Date().toISOString()});messages.forEach(m=>{if(unread.includes(m.id))m.read_at=new Date().toISOString()});}renderMessages();await unreadCounts();}catch(e){note("Не удалось обновить переписку: "+e.message);}}
+ async function load(){if(!me()){note("Сначала войдите в аккаунт во вкладке «Аккаунт».");$("#messages-contacts").innerHTML="";$("#messages-list").innerHTML="<p class='account-note'>Войдите, чтобы пользоваться сообщениями.</p>";$("#messages-input").disabled=true;$("#messages-send").disabled=true;return;}try{note("Загружаем друзей и переписки…");await loadFriends();await unreadCounts();note("Ваши личные переписки с друзьями.");if(selected&&friends.some(f=>f.id===selected))await refreshChat();else if(friends.length&&!selected)await openChat(friends[0].id);if(timer)clearInterval(timer);timer=setInterval(()=>{if(!$("#v-messages").hidden){unreadCounts().catch(()=>{});refreshChat().catch(()=>{});}},7000);}catch(e){note("Не удалось загрузить сообщения: "+e.message);}}
+ async function send(e){e.preventDefault();if(busy||!selected)return;const field=$("#messages-input"),body=field.value.trim();if(!body)return;busy=true;$("#messages-send").disabled=true;try{await api("mirage_messages","POST",{sender_id:me(),recipient_id:selected,body});field.value="";await refreshChat();}catch(e){note("Не удалось отправить сообщение: "+e.message);}finally{busy=false;$("#messages-send").disabled=false;}}
+ $("#messages-contacts")?.addEventListener("click",e=>{const b=e.target.closest("[data-chat]");if(b)openChat(b.dataset.chat)});
+ $("#messages-form")?.addEventListener("submit",send);
+ $("#messages-input")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#messages-form").requestSubmit();}});
+ window.MirageMessages={load};
+})();
+</script>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const URL_BASE = "https://sarfipfoetkttqpwcmdu.supabase.co";
+  const KEY = "sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v";
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  let rows = [], admin = false;
+
+  const note = t => { const el = $("#admin-note"); if (el) el.textContent = t; };
+  const bulkNote = t => { const el = $("#admin-bulk-note"); if (el) el.textContent = t; };
+  const session = () => { try { return JSON.parse(localStorage.getItem("mirage_supabase_session") || "null"); } catch (_) { return null; } };
+  const headers = (write = false) => {
+    const s = session();
+    return {
+      apikey: KEY,
+      Authorization: `Bearer ${s?.access_token || KEY}`,
+      ...(write ? { "Content-Type": "application/json", Prefer: "return=representation" } : {})
+    };
+  };
+  async function req(path, opts = {}) {
+    const r = await fetch(`${URL_BASE}/rest/v1/${path}`, {
+      ...opts,
+      headers: { ...headers(!!opts.body), ...(opts.headers || {}) }
+    });
+    const t = await r.text();
+    let d;
+    try { d = t ? JSON.parse(t) : null; } catch (_) { d = t; }
+    if (!r.ok) throw Error(d?.message || d?.details || d?.hint || `Ошибка ${r.status}`);
+    return d;
+  }
+
+  function fillCategorySelect() {
+    const sel = $("#e-category");
+    if (!sel || sel.options.length > 1) return;
+    Object.keys(NAME).forEach(k => {
+      const o = document.createElement("option");
+      o.value = k;
+      o.textContent = `${k} — ${NAME[k]}`;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillGroupDatalist() {
+    const dl = $("#e-group-list");
+    if (!dl) return;
+    const groups = [...new Set(rows.map(r => r.group_name).filter(Boolean))].sort();
+    dl.innerHTML = groups.map(g => `<option value="${esc(g)}">`).join("");
+  }
+
+  async function check() {
+    const s = session();
+    admin = false;
+    if (s?.access_token) {
+      try {
+        const r = await fetch(`${URL_BASE}/auth/v1/user`, { headers: headers() });
+        const u = await r.json();
+        admin = u?.app_metadata?.role === "admin";
+      } catch (_) {}
+    }
+    const adminBtn = $("#forum-sub-admin-btn");
+    if (adminBtn) adminBtn.hidden = !admin;
+    // если убрали права и открыта подвкладка admin — вернуться к законам
+    if (!admin) {
+      const subAdmin = $("#forum-sub-admin");
+      if (subAdmin && !subAdmin.hidden) showForumSub("laws");
+    }
+    return admin;
+  }
+
+  async function loadPublicEntries() {
+    try {
+      const data = await req("legal_entries?select=*&order=category.asc,code.asc");
+      if (data && data.length) {
+        const mapped = data.map(x => ({
+          c: x.category, g: x.group_name, n: x.code, t: x.title, x: x.body,
+          p: "", f: x.kind, w: x.wanted, m: x.penalty, fn: x.fine
+        }));
+        IDX.splice(0, IDX.length, ...mapped);
+        IDX.forEach(it => {
+          it.h = norm([it.n, it.t, it.x, it.p, it.m, it.fn ? "штраф " + it.fn : "", it.w ? "розыск " + it.w : "", it.g, NAME[it.c]].join(" "));
+          it.hn = it.h.replace(/(\d)[\s\u00a0\u202f](?=\d{3})/g, "$1");
+        });
+        render();
+      }
+    } catch (e) {
+      console.warn("Mirage legal entries:", e.message);
+    }
+  }
+
+  async function load() {
+    fillCategorySelect();
+    if (!(await check())) {
+      note("Панель видна только администраторам (app_metadata.role = admin).");
+      return;
+    }
+    try {
+      rows = await req("legal_entries?select=*&order=category.asc,code.asc");
+      draw();
+      fillGroupDatalist();
+      note(`Записей в базе: ${rows.length}. Можно добавлять по одной или импортировать пачкой.`);
+    } catch (e) {
+      note("Ошибка загрузки: " + e.message);
+    }
+  }
+
+  function draw() {
+    const root = $("#admin-entries");
+    if (!root) return;
+    root.innerHTML = rows.length
+      ? rows.map(x => `<article class="card"><div class="card-head"><h2>${esc(x.code)} · ${esc(x.title)}</h2><span class="tag">${esc(x.category)}</span></div><p>${esc((x.body || "").slice(0, 220))}${(x.body || "").length > 220 ? "…" : ""}</p><div class="meta">${x.kind ? `<span class="b ${x.kind}">${x.kind === "F" ? "Федеральное" : "Региональное"}</span>` : ""}${x.wanted ? `<span>Розыск <b>${esc(x.wanted)}</b></span>` : ""}${x.penalty ? `<span class="pen">${esc(x.penalty)}</span>` : ""}${x.fine ? `<span class="pen">штраф ${esc(x.fine)}</span>` : ""}</div><div class="account-actions"><button class="account-btn secondary" data-edit="${x.id}">Изменить</button><button class="account-btn secondary" data-delete="${x.id}">Удалить</button></div></article>`).join("")
+      : '<p class="empty">Статей пока нет. Нажмите «+ Одна статья» или воспользуйтесь массовым импортом.</p>';
+  }
+
+  function form(x = {}) {
+    $("#admin-bulk").hidden = true;
+    $("#admin-editor").hidden = false;
+    fillCategorySelect();
+    const map = {
+      "e-id": "id", "e-category": "category", "e-group": "group_name", "e-code": "code",
+      "e-title": "title", "e-body": "body", "e-penalty": "penalty", "e-fine": "fine",
+      "e-wanted": "wanted", "e-kind": "kind"
+    };
+    for (const [id, k] of Object.entries(map)) {
+      const el = $("#" + id);
+      if (el) el.value = x[k] ?? "";
+    }
+    $("#admin-editor").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function closeEditor() {
+    $("#admin-editor").hidden = true;
+    $("#e-id").value = "";
+  }
+
+  async function save(e) {
+    e.preventDefault();
+    if (!(await check())) return;
+    const x = {
+      category: $("#e-category").value.trim(),
+      group_name: $("#e-group").value.trim(),
+      code: $("#e-code").value.trim(),
+      title: $("#e-title").value.trim(),
+      body: $("#e-body").value.trim(),
+      penalty: $("#e-penalty").value.trim(),
+      fine: $("#e-fine").value.trim(),
+      wanted: $("#e-wanted").value.trim(),
+      kind: $("#e-kind").value.trim(),
+      updated_at: new Date().toISOString()
+    };
+    if (!x.category || !x.code || !x.title) {
+      note("Заполните категорию, номер и название.");
+      return;
+    }
+    const id = $("#e-id").value;
+    try {
+      if (id) await req(`legal_entries?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(x) });
+      else await req("legal_entries", { method: "POST", body: JSON.stringify(x) });
+      closeEditor();
+      await load();
+      await loadPublicEntries();
+      note("Опубликовано в Supabase. Список и каталог законов обновлены.");
+      // показать в каталоге
+      showForumSub("laws");
+    } catch (err) {
+      note("Не удалось сохранить: " + err.message);
+    }
+  }
+
+  function parseBulk(text) {
+    const blocks = text.split(/\n---+\n/).map(b => b.trim()).filter(Boolean);
+    const out = [];
+    for (const block of blocks) {
+      const item = { category: "", group_name: "", code: "", title: "", body: "", penalty: "", fine: "", wanted: "", kind: "" };
+      let currentKey = null;
+      const lines = block.split("\n");
+      for (const line of lines) {
+        const m = line.match(/^(category|group|group_name|code|title|body|penalty|fine|wanted|kind)\s*:\s*(.*)$/i);
+        if (m) {
+          currentKey = m[1].toLowerCase() === "group" ? "group_name" : m[1].toLowerCase();
+          if (currentKey === "group_name") currentKey = "group_name";
+          item[currentKey === "group" ? "group_name" : currentKey] = (m[2] || "").trim();
+          if (currentKey === "body" && !m[2].trim()) {
+            // body may continue on following lines
+          }
+        } else if (currentKey === "body") {
+          item.body = (item.body ? item.body + "\n" : "") + line;
+        }
+      }
+      item.body = (item.body || "").trim();
+      if (item.category && item.code && item.title) out.push(item);
+    }
+    return out;
+  }
+
+  async function runBulk() {
+    if (!(await check())) return;
+    const text = $("#admin-bulk-text").value;
+    const items = parseBulk(text);
+    if (!items.length) {
+      bulkNote("Не найдено ни одной валидной статьи. Нужны как минимум category, code и title.");
+      return;
+    }
+    bulkNote(`Импортируем ${items.length} статей…`);
+    let ok = 0, fail = 0;
+    for (const it of items) {
+      try {
+        await req("legal_entries", {
+          method: "POST",
+          body: JSON.stringify({ ...it, updated_at: new Date().toISOString() })
+        });
+        ok++;
+      } catch (e) {
+        fail++;
+        console.warn("bulk fail", it.code, e.message);
+      }
+    }
+    bulkNote(`Готово: успешно ${ok}, ошибок ${fail}. Данные в Supabase.`);
+    if (ok) showForumSub("laws");
+    await load();
+    await loadPublicEntries();
+  }
+
+  // Events
+  $("#admin-add")?.addEventListener("click", () => form());
+  $("#admin-cancel")?.addEventListener("click", closeEditor);
+  $("#admin-form")?.addEventListener("submit", save);
+  $("#admin-refresh")?.addEventListener("click", load);
+  $("#admin-bulk-toggle")?.addEventListener("click", () => {
+    $("#admin-editor").hidden = true;
+    $("#admin-bulk").hidden = !$("#admin-bulk").hidden;
+    if (!$("#admin-bulk").hidden) $("#admin-bulk-text").focus();
+  });
+  $("#admin-bulk-cancel")?.addEventListener("click", () => { $("#admin-bulk").hidden = true; });
+  $("#admin-bulk-run")?.addEventListener("click", runBulk);
+
+  $("#admin-entries")?.addEventListener("click", async e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.edit) {
+      const x = rows.find(r => String(r.id) === b.dataset.edit);
+      if (x) form(x);
+    }
+    if (b.dataset.delete) {
+      const x = rows.find(r => String(r.id) === b.dataset.delete);
+      if (!x || !confirm(`Удалить статью ${x.code}?`)) return;
+      try {
+        await req(`legal_entries?id=eq.${x.id}`, { method: "DELETE" });
+        await load();
+        await loadPublicEntries();
+      } catch (err) {
+        note("Ошибка удаления: " + err.message);
+      }
+    }
+  });
+
+  window.MirageAdmin = { open: load };
+  window.addEventListener("mirage-auth-changed", () => { check(); });
+  loadPublicEntries();
+})();
+</script>
+
+
+<script>
+// ===== Онлайн, уведомления, приватность, форум и комментарии Mirage =====
+(() => {
+ const BASE="https://sarfipfoetkttqpwcmdu.supabase.co",KEY="sb_publishable_eIBJuBIB805UZ2g10HCG1g_8sdVei4v", $=s=>document.querySelector(s);
+ const sess=()=>{try{return JSON.parse(localStorage.getItem("mirage_supabase_session")||"null")}catch(_){return null}}, me=()=>sess()?.user?.id||null;
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ let tokenTimer=null,heartbeatBusy=false,currentTopic=null,currentLaw=null;
+ async function token(){let s=sess();if(!s?.access_token)throw Error("Сначала войдите в аккаунт.");if(Number(s.expires_at||0)<=Date.now()+60000){if(!s.refresh_token)throw Error("Сессия истекла. Войдите заново.");const r=await fetch(BASE+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json();if(!r.ok)throw Error(d.msg||d.message||"Не удалось обновить сессию");s={...s,...d,expires_at:Date.now()+Number(d.expires_in||3600)*1000};localStorage.setItem("mirage_supabase_session",JSON.stringify(s));}return s.access_token;}
+ async function api(path,method="GET",body=null,prefer="return=representation"){const t=await token(),r=await fetch(BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:prefer},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
+ function status(t){const e=$("#notifications-note");if(e)e.textContent=t;}
+ async function heartbeat(){if(!me()||heartbeatBusy)return;heartbeatBusy=true;try{await api("profiles?id=eq."+me(),"PATCH",{last_seen_at:new Date().toISOString()},"return=minimal");}catch(e){console.warn("Mirage presence",e.message)}finally{heartbeatBusy=false;}}
+ function startPresence(){if(tokenTimer)clearInterval(tokenTimer);heartbeat();tokenTimer=setInterval(heartbeat,45000);}
+ async function loadNotifications(){if(!me()){status("Войдите в аккаунт, чтобы видеть уведомления.");$("#notifications-list").innerHTML="";return;}status("Загружаем уведомления…");try{const rows=await api("mirage_notifications?select=id,kind,actor_id,entity_id,is_read,created_at&order=created_at.desc&limit=100");const ids=[...new Set(rows.map(x=>x.actor_id).filter(Boolean))];let profiles=[];if(ids.length)profiles=await api("mirage_public_profiles?select=id,display_name,avatar_url&id=in.("+ids.join(",")+")");const total=rows.filter(x=>!x.is_read).length,b=$("#all-notice-count");b.textContent=String(total);b.hidden=!total;$("#notifications-list").innerHTML=rows.length?rows.map(n=>{const p=profiles.find(x=>x.id===n.actor_id),name=esc(p?.display_name||"Пользователь"),label=n.kind==="message"?`Новое сообщение от ${name}`:n.kind==="friend_request"?`${name} отправил(а) заявку в друзья`:n.kind==="friend_accepted"?`${name} принял(а) вашу заявку`:"Новое уведомление";return `<div class="notice-item ${n.is_read?"":"unread"}"><strong>${label}</strong><div class="forum-meta">${new Date(n.created_at).toLocaleString("ru-RU")}</div>${!n.is_read?`<button class="account-btn secondary" data-notice-read="${n.id}">Отметить прочитанным</button>`:"<span class='account-note'>Прочитано</span>"}${n.kind==="message"?`<button class="account-btn" data-notice-chat="1">Открыть сообщения</button>`:n.kind.startsWith("friend_")?`<button class="account-btn" data-notice-people="1">Открыть людей</button>`:""}</div>`}).join(""):`<p class="account-note">Пока нет уведомлений.</p>`;status(`Уведомлений: ${rows.length}`);}catch(e){status("Не удалось загрузить уведомления: "+e.message);}}
+ async function markNotice(id){await api("mirage_notifications?id=eq."+id,"PATCH",{is_read:true},"return=minimal");await loadNotifications();}
+ async function loadForum(){if(!me()){$("#forum-note").textContent="Войдите в аккаунт, чтобы участвовать в форуме.";return;}const box=$("#forum-list");box.innerHTML="<p class='account-note'>Загрузка обсуждений…</p>";try{const rows=await api("mirage_forum_topics?select=id,author_id,title,body,created_at,updated_at&order=created_at.desc&limit=100");const ids=[...new Set(rows.map(x=>x.author_id))],profiles=ids.length?await api("mirage_public_profiles?select=id,display_name&id=in.("+ids.join(",")+")"):[];box.innerHTML=rows.length?rows.map(t=>`<article class="forum-topic"><h3>${esc(t.title)}</h3><div class="forum-meta">${esc(profiles.find(p=>p.id===t.author_id)?.display_name||"Пользователь")} · ${new Date(t.created_at).toLocaleString("ru-RU")}</div><p>${esc(t.body.slice(0,500))}${t.body.length>500?"…":""}</p><button class="account-btn" data-topic-open="${t.id}">Открыть обсуждение</button></article>`).join(""):`<p class="account-note">Пока нет обсуждений. Создайте первую тему!</p>`;}catch(e){box.innerHTML=`<p class="account-note">Ошибка загрузки форума: ${esc(e.message)}</p>`;}}
+ async function openTopic(id){currentTopic=id;try{const rows=await api("mirage_forum_topics?select=id,title,body,author_id,created_at&id=eq."+id);const t=rows[0];if(!t)return;$("#forum-thread-title").textContent=t.title;$("#forum-thread-body").textContent=t.body;const replies=await api("mirage_forum_replies?select=id,topic_id,author_id,body,created_at&topic_id=eq."+id+"&order=created_at.asc");const ids=[...new Set(replies.map(x=>x.author_id))],ps=ids.length?await api("mirage_public_profiles?select=id,display_name&id=in.("+ids.join(",")+")"):[];$("#forum-replies").innerHTML=replies.length?replies.map(r=>`<div class="forum-reply"><strong>${esc(ps.find(p=>p.id===r.author_id)?.display_name||"Пользователь")}</strong><div class="forum-meta">${new Date(r.created_at).toLocaleString("ru-RU")}</div><p>${esc(r.body)}</p></div>`).join(""):`<p class="account-note">Ответов пока нет.</p>`;$("#forum-thread").hidden=false;$("#forum-thread-note").textContent="";}catch(e){$("#forum-thread-note").textContent="Не удалось открыть тему: "+e.message;}}
+ async function createTopic(e){e.preventDefault();if(!me())return;const title=$("#forum-title").value.trim(),body=$("#forum-body").value.trim();if(!title||!body)return;try{await api("mirage_forum_topics","POST",{author_id:me(),title,body});$("#forum-form").reset();$("#forum-note").textContent="Тема опубликована.";await loadForum();}catch(e){$("#forum-note").textContent="Не удалось опубликовать: "+e.message;}}
+ async function replyTopic(e){e.preventDefault();if(!currentTopic||!me())return;const body=$("#forum-reply-body").value.trim();if(!body)return;try{await api("mirage_forum_replies","POST",{topic_id:currentTopic,author_id:me(),body});$("#forum-reply-form").reset();await openTopic(currentTopic);}catch(e){$("#forum-thread-note").textContent="Не удалось отправить ответ: "+e.message;}}
+ function ensureCommentsModal(){if($("#law-comments-modal"))return;document.body.insertAdjacentHTML("beforeend",`<div class="comments-modal" id="law-comments-modal" hidden><section class="comments-box"><div class="account-actions" style="justify-content:space-between"><h2 id="law-comments-title">Комментарии</h2><button class="account-btn secondary" id="law-comments-close" type="button">Закрыть</button></div><div id="law-comments-list"></div><form id="law-comment-form" class="account-form"><label>Ваш комментарий<textarea id="law-comment-body" maxlength="3000" required placeholder="Напишите комментарий к статье…"></textarea></label><button class="account-btn" type="submit">Отправить</button></form><p class="account-note" id="law-comments-note"></p></section></div>`);$("#law-comments-close").addEventListener("click",()=>$("#law-comments-modal").hidden=true);$("#law-comments-modal").addEventListener("click",e=>{if(e.target.id==="law-comments-modal")e.currentTarget.hidden=true});$("#law-comment-form").addEventListener("submit",postLawComment);}
+ async function openLawComments(category,code,title){if(!me()){alert("Войдите в аккаунт, чтобы читать и оставлять комментарии.");return;}currentLaw={category,code,title};ensureCommentsModal();$("#law-comments-title").textContent=`Комментарии · ${code} ${title}`;$("#law-comments-modal").hidden=false;$("#law-comments-list").innerHTML="<p class='account-note'>Загрузка…</p>";try{const q="legal_category=eq."+encodeURIComponent(category)+"&legal_code=eq."+encodeURIComponent(code);const rows=await api("mirage_law_comments?select=id,author_id,body,created_at&"+q+"&order=created_at.asc");const ids=[...new Set(rows.map(x=>x.author_id))],ps=ids.length?await api("mirage_public_profiles?select=id,display_name&id=in.("+ids.join(",")+")"):[];$("#law-comments-list").innerHTML=rows.length?rows.map(r=>`<div class="law-comment"><strong>${esc(ps.find(p=>p.id===r.author_id)?.display_name||"Пользователь")}</strong><div class="forum-meta">${new Date(r.created_at).toLocaleString("ru-RU")}</div><p>${esc(r.body)}</p></div>`).join(""):`<p class="account-note">Комментариев пока нет. Будьте первым!</p>`;$("#law-comments-note").textContent="";}catch(e){$("#law-comments-list").innerHTML=`<p class="account-note">Не удалось загрузить комментарии: ${esc(e.message)}</p>`;}}
+ async function postLawComment(e){e.preventDefault();if(!currentLaw||!me())return;const body=$("#law-comment-body").value.trim();if(!body)return;try{await api("mirage_law_comments","POST",{author_id:me(),legal_category:currentLaw.category,legal_code:currentLaw.code,article_title:currentLaw.title,body});$("#law-comment-form").reset();await openLawComments(currentLaw.category,currentLaw.code,currentLaw.title);}catch(e){$("#law-comments-note").textContent="Не удалось отправить комментарий: "+e.message;}}
+ document.addEventListener("click",e=>{const c=e.target.closest(".law-comments-open");if(c)openLawComments(c.dataset.lawCategory,c.dataset.lawCode,c.dataset.lawTitle);const n=e.target.closest("[data-notice-read]");if(n)markNotice(n.dataset.noticeRead);if(e.target.closest("[data-notice-chat]"))document.querySelector('[data-v="messages"]').click();if(e.target.closest("[data-notice-people]"))document.querySelector('[data-v="users"]').click();const t=e.target.closest("[data-topic-open]");if(t)openTopic(t.dataset.topicOpen);});
+ $("#notifications-refresh")?.addEventListener("click",loadNotifications);$("#forum-refresh")?.addEventListener("click",loadForum);$("#forum-form")?.addEventListener("submit",createTopic);$("#forum-reply-form")?.addEventListener("submit",replyTopic);$("#forum-thread-close")?.addEventListener("click",()=>{$("#forum-thread").hidden=true;currentTopic=null;});
+ window.addEventListener("mirage-auth-changed",()=>{if(me())startPresence();});document.addEventListener("visibilitychange",()=>{if(!document.hidden)heartbeat();});
+ if(me())startPresence();setInterval(()=>{if(me())loadNotifications().catch(()=>{});},45000);window.MirageExtras={loadNotifications,loadForum};
+})();
+</script>
+
 </body>
 </html>
