@@ -379,7 +379,7 @@ body:
         <form id="profile-custom-form" class="account-form">
           <label>Аватар (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
           <label>Баннер профиля (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-banner-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
-          <p class="profile-hint" id="profile-crop-hint">После выбора файла откроется окно: можно подвинуть и масштабировать фото перед сохранением.</p>
+          <p class="profile-hint" id="profile-crop-hint">После выбора JPG/PNG откроется окно подгонки. GIF сохраняются как есть (с анимацией), без обрезки.</p>
           <label>О себе<textarea id="profile-bio" maxlength="300" placeholder="Расскажите немного о себе…"></textarea></label>
           <label>Приватность профиля<select id="profile-visibility"><option value="public">Виден всем пользователям</option><option value="friends">Только друзьям</option><option value="private">Только мне</option></select></label>
           <label style="display:flex;align-items:center;gap:8px"><input id="profile-show-online" type="checkbox" style="width:auto"> Показывать мой онлайн и последнюю активность</label>
@@ -784,16 +784,35 @@ apply();sync();drawSaved();render();
     if(zoom){zoom.min=String(Math.round(cropState.minScale*100));zoom.max=String(Math.round(cropState.minScale*300));zoom.value=String(Math.round(cropState.scale*100));}
     applyCropTransform();
   }
+  function setPendingImage(kind,file,previewUrl){
+    if(cropState.pending[kind]?.preview) URL.revokeObjectURL(cropState.pending[kind].preview);
+    cropState.pending[kind]={file,preview:previewUrl,isGif:/gif/i.test(file.type||file.name||"")};
+    if(kind==="avatar"){ const img=$("#profile-avatar-preview"); if(img) img.src=previewUrl; }
+    else { const ban=$("#profile-banner-preview"); if(ban) ban.style.backgroundImage=`url(${JSON.stringify(previewUrl)})`; }
+    renderProfileCustomization();
+    const status=$("#profile-custom-note");
+    if(status) status.textContent=cropState.pending[kind].isGif
+      ? "GIF выбран без обрезки (чтобы сохранить анимацию). Нажмите «Сохранить профиль»."
+      : "Кадр применён. Нажмите «Сохранить профиль», чтобы загрузить на сервер.";
+  }
   function openCropper(file,kind){
     const allowed=["image/png","image/jpeg","image/gif","image/webp"];
-    if(!allowed.includes(file.type)) { const n=$("#profile-custom-note"); if(n)n.textContent="Поддерживаются только PNG, JPG, JPEG, GIF и WebP."; return; }
+    if(!allowed.includes(file.type) && !/\.(png|jpe?g|gif|webp)$/i.test(file.name||"")) { const n=$("#profile-custom-note"); if(n)n.textContent="Поддерживаются только PNG, JPG, JPEG, GIF и WebP."; return; }
     if(file.size>8*1024*1024){ const n=$("#profile-custom-note"); if(n)n.textContent="Файл больше 8 МБ."; return; }
+    // GIF без canvas — иначе анимация пропадает
+    if(file.type==="image/gif" || /\.gif$/i.test(file.name||"")){
+      const preview=URL.createObjectURL(file);
+      setPendingImage(kind,file,preview);
+      if(kind==="avatar") $("#profile-avatar-file").value="";
+      else $("#profile-banner-file").value="";
+      return;
+    }
     if(cropState.url) URL.revokeObjectURL(cropState.url);
     cropState.kind=kind; cropState.url=URL.createObjectURL(file);
     const stage=$("#crop-stage"), img=$("#crop-img"), modal=$("#crop-modal");
     stage.className="crop-stage "+(kind==="avatar"?"avatar":"banner");
     $("#crop-title").textContent=kind==="avatar"?"Подгонка аватара":"Подгонка баннера";
-    $("#crop-desc").textContent="Перетащите изображение и крутите масштаб. Сохранится только то, что видно в рамке.";
+    $("#crop-desc").textContent="Перетащите изображение и крутите масштаб. Сохранится только то, что видно в рамке. GIF загружаются без обрезки, чтобы сохранить анимацию.";
     img.onload=()=>{cropState.img=img; fitCropImage();};
     img.src=cropState.url;
     modal.hidden=false;
@@ -831,26 +850,29 @@ apply();sync();drawSaved();render();
       const blob=await exportCroppedBlob();
       const file=new File([blob], `${cropState.kind}-${Date.now()}.jpg`, {type:"image/jpeg"});
       const preview=URL.createObjectURL(blob);
-      if(cropState.pending[cropState.kind]?.preview) URL.revokeObjectURL(cropState.pending[cropState.kind].preview);
-      cropState.pending[cropState.kind]={file,preview};
-      if(cropState.kind==="avatar"){ const img=$("#profile-avatar-preview"); if(img) img.src=preview; }
-      else { const ban=$("#profile-banner-preview"); if(ban) ban.style.backgroundImage=`url(${JSON.stringify(preview)})`; }
+      setPendingImage(cropState.kind,file,preview);
       closeCropper(true);
-      renderProfileCustomization();
-      if(status) status.textContent=(cropState.pending.avatar||cropState.pending.banner)?"Кадр применён. Нажмите «Сохранить профиль», чтобы загрузить на сервер.":"";
     }catch(err){ if(status) status.textContent="Ошибка обработки: "+err.message; }
   }
   async function uploadProfileImage(file, kind) {
     if(!file) return null;
     const allowed=["image/png","image/jpeg","image/gif","image/webp"];
-    if(!allowed.includes(file.type)) throw new Error("Поддерживаются только PNG, JPG, JPEG, GIF и WebP.");
+    const type=file.type||( /\.gif$/i.test(file.name)?"image/gif": /\.png$/i.test(file.name)?"image/png": /\.webp$/i.test(file.name)?"image/webp":"image/jpeg");
+    if(!allowed.includes(type) && !/\.(png|jpe?g|gif|webp)$/i.test(file.name||"")) throw new Error("Поддерживаются только PNG, JPG, JPEG, GIF и WebP.");
     if(file.size>8*1024*1024) throw new Error("Файл больше 8 МБ. Выберите изображение поменьше.");
     const token=await ensureToken(); const userId=uid();
-    const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
+    let ext=(file.name.split(".").pop()||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+    if(!ext || ext.length>5){
+      ext=type==="image/gif"?"gif":type==="image/png"?"png":type==="image/webp"?"webp":"jpg";
+    }
+    // критично: для gif всегда расширение .gif и Content-Type image/gif
+    if(type==="image/gif" || ext==="gif"){ ext="gif"; }
+    const contentType=ext==="gif"?"image/gif":type;
     const path=`${userId}/${kind}-${Date.now()}.${ext}`;
-    const response=await fetch(`${apiBase()}/storage/v1/object/mirage-profiles/${path}`,{method:"POST",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,"Content-Type":file.type,"x-upsert":"true"},body:file});
+    const response=await fetch(`${apiBase()}/storage/v1/object/mirage-profiles/${path}`,{method:"POST",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,"Content-Type":contentType,"x-upsert":"true"},body:file});
     await parseResponse(response);
-    return `${apiBase()}/storage/v1/object/public/mirage-profiles/${path}`;
+    // cache-bust чтобы браузер сразу показал новый gif
+    return `${apiBase()}/storage/v1/object/public/mirage-profiles/${path}?t=${Date.now()}`;
   }
   async function saveCustomProfile(e) {
     e.preventDefault(); const status=$("#profile-custom-note"); const btn=$("#profile-custom-save");
