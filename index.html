@@ -107,7 +107,9 @@ footer a{color:var(--acct)}
 @media(max-width:720px){.account-panel{padding:16px}.views button{padding:7px 12px}}
 
 
-.profile-custom{display:grid;gap:14px}.profile-banner{height:150px;border-radius:10px;background:var(--accsoft) center/cover no-repeat;border:1px solid var(--line);position:relative;overflow:hidden}.profile-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--panel);border:4px solid var(--panel);margin-top:-46px;position:relative}.profile-preview{padding:0 14px 12px}.profile-custom textarea{width:100%;min-height:88px}.profile-file{font-size:13px!important}.profile-hint{font-size:12px;color:var(--mute)}
+.profile-custom{display:grid;gap:14px}.profile-banner{height:150px;border-radius:10px;background:var(--accsoft);border:1px solid var(--line);position:relative;overflow:hidden}.profile-banner>img{width:100%;height:100%;object-fit:cover;display:block;border:0}.profile-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--panel);border:4px solid var(--panel);margin-top:-46px;position:relative;display:block}.profile-preview{padding:0 14px 12px}.profile-custom textarea{width:100%;min-height:88px}.profile-file{font-size:13px!important}.profile-hint{font-size:12px;color:var(--mute)}
+.user-card .uc-banner{position:relative;overflow:hidden}.user-card .uc-banner>img{width:100%;height:100%;object-fit:cover;display:block}
+.profile-modal-banner{position:relative;overflow:hidden}.profile-modal-banner>img{width:100%;height:100%;object-fit:cover;display:block}
 .crop-modal{position:fixed;inset:0;z-index:1200;background:#000a;display:grid;place-items:center;padding:16px}
 .crop-modal[hidden]{display:none}
 .crop-box{width:min(520px,100%);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 18px 60px #0006}
@@ -123,7 +125,8 @@ footer a{color:var(--acct)}
 
 .users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:14px}
 .user-card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;min-width:0}
-.user-card .uc-banner{height:76px;background:linear-gradient(120deg,var(--accsoft),var(--panel));background-size:cover;background-position:center}
+.user-card .uc-banner{height:76px;background:linear-gradient(120deg,var(--accsoft),var(--panel));position:relative;overflow:hidden}
+.user-card .uc-banner>img{width:100%;height:100%;object-fit:cover;display:block}
 .user-card .uc-body{padding:12px 14px}
 .user-card .uc-head{display:flex;align-items:center;gap:10px;margin-top:-30px;margin-bottom:8px}
 .user-card .uc-avatar{width:58px;height:58px;object-fit:cover;border-radius:50%;border:3px solid var(--panel);background:var(--line)}
@@ -139,7 +142,8 @@ footer a{color:var(--acct)}
 .profile-modal{position:fixed;inset:0;z-index:1000;background:#0009;display:grid;place-items:center;padding:16px}
 .profile-modal[hidden]{display:none}
 .profile-modal-box{width:min(560px,100%);max-height:min(85vh,760px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 60px #0005}
-.profile-modal-banner{height:150px;background:linear-gradient(120deg,var(--accsoft),var(--panel)) center/cover no-repeat}
+.profile-modal-banner{height:150px;background:linear-gradient(120deg,var(--accsoft),var(--panel));position:relative;overflow:hidden}
+.profile-modal-banner>img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-modal-content{padding:0 20px 20px}
 .profile-modal-avatar{width:92px;height:92px;object-fit:cover;border-radius:50%;border:4px solid var(--panel);background:var(--line);margin-top:-46px;position:relative}
 .profile-modal-close{float:right;margin:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px}
@@ -374,7 +378,7 @@ body:
       </form>
       <section class="account-panel profile-custom" style="margin-top:16px">
         <h2>Оформление профиля</h2>
-        <div class="profile-banner" id="profile-banner-preview"></div>
+        <div class="profile-banner" id="profile-banner-preview"><img id="profile-banner-img" alt="" hidden></div>
         <div class="profile-preview"><img class="profile-avatar" id="profile-avatar-preview" alt="Аватар профиля"><div id="profile-preview-name" style="font-weight:600"></div><div id="profile-preview-bio" class="sub"></div></div>
         <form id="profile-custom-form" class="account-form">
           <label>Аватар (PNG, JPG, JPEG, GIF, WebP)<input class="profile-file" id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label>
@@ -751,7 +755,9 @@ apply();sync();drawSaved();render();
     const av=cropState.pending.avatar?.preview||p.avatar_url||"";
     const ban=cropState.pending.banner?.preview||p.banner_url||"";
     const img=$("#profile-avatar-preview"); if(img) img.src=av||PLACEHOLDER_AV;
-    const banner=$("#profile-banner-preview"); if(banner) banner.style.backgroundImage=ban?`url(${JSON.stringify(ban)})`:"none";
+    const bannerImg=$("#profile-banner-img"); const bannerBox=$("#profile-banner-preview");
+    if(bannerImg){ if(ban){ bannerImg.src=ban; bannerImg.hidden=false; } else { bannerImg.removeAttribute("src"); bannerImg.hidden=true; } }
+    if(bannerBox) bannerBox.style.backgroundImage="none";
     if($("#profile-bio"))$("#profile-bio").value=p.bio||"";
     if($("#profile-visibility"))$("#profile-visibility").value=p.profile_visibility||"public";
     if($("#profile-show-online"))$("#profile-show-online").checked=p.show_online!==false;
@@ -788,7 +794,7 @@ apply();sync();drawSaved();render();
     if(cropState.pending[kind]?.preview) URL.revokeObjectURL(cropState.pending[kind].preview);
     cropState.pending[kind]={file,preview:previewUrl,isGif:/gif/i.test(file.type||file.name||"")};
     if(kind==="avatar"){ const img=$("#profile-avatar-preview"); if(img) img.src=previewUrl; }
-    else { const ban=$("#profile-banner-preview"); if(ban) ban.style.backgroundImage=`url(${JSON.stringify(previewUrl)})`; }
+    else { const bannerImg=$("#profile-banner-img"); if(bannerImg){ bannerImg.src=previewUrl; bannerImg.hidden=false; } }
     renderProfileCustomization();
     const status=$("#profile-custom-note");
     if(status) status.textContent=cropState.pending[kind].isGif
@@ -1097,10 +1103,10 @@ apply();sync();drawSaved();render();
  async function api(path,method="GET",body=null){const t=await token();const r=await fetch(URL_BASE+"/rest/v1/"+path,{method,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:"return=minimal"},...(body?{body:JSON.stringify(body)}:{})});const tx=await r.text();let d;try{d=tx?JSON.parse(tx):null}catch(_){d={message:tx}}if(!r.ok)throw Error(d?.message||d?.hint||d?.details||d?.error||"Ошибка "+r.status);return d;}
  const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  function presenceMarkup(p){if(p.show_online===false)return `<div class="presence-line">Статус скрыт</div>`;const online=p.last_seen_at&&(Date.now()-new Date(p.last_seen_at).getTime()<120000);const last=p.last_seen_at?new Date(p.last_seen_at).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"давно";return `<div class="presence-line"><i class="presence-dot ${online?"online":""}"></i>${online?"В сети":"Был(а): "+last}</div>`;}
- function card(p, action=""){const av=p.avatar_url?`<img class="uc-avatar" src="${esc(p.avatar_url)}" alt="Аватар">`:`<div class="uc-avatar"></div>`;const ban=p.banner_url?`style="background-image:url('${esc(p.banner_url).replace(/'/g,"%27") }')"`:"";return `<article class="user-card"><div class="uc-banner" ${ban}></div><div class="uc-body"><div class="uc-head">${av}<div class="uc-name"><button type="button" data-profile-open="${esc(p.id)}">${esc(p.display_name||"Пользователь")}</button></div></div><div class="uc-bio">${esc(p.bio||"")}</div>${presenceMarkup(p)}${action}</div></article>`;}
+ function card(p, action=""){const av=p.avatar_url?`<img class="uc-avatar" src="${esc(p.avatar_url)}" alt="Аватар">`:`<div class="uc-avatar"></div>`;const ban=p.banner_url?`<img src="${esc(p.banner_url)}" alt="">`:"";return `<article class="user-card"><div class="uc-banner">${ban}</div><div class="uc-body"><div class="uc-head">${av}<div class="uc-name"><button type="button" data-profile-open="${esc(p.id)}">${esc(p.display_name||"Пользователь")}</button></div></div><div class="uc-bio">${esc(p.bio||"")}</div>${presenceMarkup(p)}${action}</div></article>`;}
  function filteredPeople(){const q=($('#users-search')?.value||"").trim().toLocaleLowerCase("ru");return q?people.filter(p=>(p.display_name||"").toLocaleLowerCase("ru").includes(q)||(p.bio||"").toLocaleLowerCase("ru").includes(q)):people;}
  function renderPeople(){const my=me(),shown=filteredPeople(),list=$("#users-list");list.innerHTML=shown.length?shown.map(p=>card(p,p.id===my?`<div class="account-actions"><span class="account-note">Это вы</span></div>`:`<div class="account-actions">${actionFor(p)}</div>`)).join(""):`<p class="account-note">${people.length?"Ничего не найдено.":"Пока пользователей нет."}</p>`;$("#users-search-count").textContent=people.length?`Показано: ${shown.length} из ${people.length}`:"";}
- function openProfile(id){const p=people.find(x=>x.id===id);if(!p)return;activeProfileId=id;const modal=$("#public-profile-modal"),ban=$("#public-profile-banner"),av=$("#public-profile-avatar");ban.style.backgroundImage=p.banner_url?`url(${JSON.stringify(p.banner_url)})`:"";av.src=p.avatar_url||"";av.hidden=!p.avatar_url;$("#public-profile-name").textContent=p.display_name||"Пользователь";$("#public-profile-bio").innerHTML=esc(p.bio||"Пользователь пока ничего не рассказал о себе.")+presenceMarkup(p);$("#public-profile-date").textContent=p.created_at?"В Mirage с "+new Date(p.created_at).toLocaleDateString("ru-RU"):"";$("#public-profile-bio").insertAdjacentHTML("afterend",presenceMarkup(p));$("#public-profile-actions").innerHTML=p.id===me()?"<span class='account-note'>Это ваш профиль</span>":actionFor(p);modal.hidden=false;}
+ function openProfile(id){const p=people.find(x=>x.id===id);if(!p)return;activeProfileId=id;const modal=$("#public-profile-modal"),ban=$("#public-profile-banner"),av=$("#public-profile-avatar");ban.innerHTML=p.banner_url?`<img src="${esc(p.banner_url)}" alt="">`:"";ban.style.backgroundImage="";av.src=p.avatar_url||"";av.hidden=!p.avatar_url;$("#public-profile-name").textContent=p.display_name||"Пользователь";$("#public-profile-bio").innerHTML=esc(p.bio||"Пользователь пока ничего не рассказал о себе.")+presenceMarkup(p);$("#public-profile-date").textContent=p.created_at?"В Mirage с "+new Date(p.created_at).toLocaleDateString("ru-RU"):"";$("#public-profile-actions").innerHTML=p.id===me()?"<span class='account-note'>Это ваш профиль</span>":actionFor(p);modal.hidden=false;}
  function closeProfile(){$("#public-profile-modal").hidden=true;}
  function relFor(id){return relations.find(r=>r.requester_id===id||r.addressee_id===id)||null;}
  function actionFor(p){const r=relFor(p.id);if(!r)return `<button class="account-btn" data-friend-add="${p.id}">Добавить в друзья</button>`;if(r.status==="accepted")return `<button class="account-btn secondary" data-friend-remove="${r.id}">У вас в друзьях</button>`;if(r.status==="pending"){if(r.addressee_id===me())return `<button class="account-btn" data-friend-accept="${r.id}">Принять заявку</button>`;return `<span class="account-note">Заявка отправлена</span>`;}if(r.status==="rejected"&&r.requester_id===me())return `<button class="account-btn" data-friend-resend="${r.id}">Отправить снова</button>`;return `<span class="account-note">Заявка отклонена</span>`;}
