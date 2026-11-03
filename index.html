@@ -426,6 +426,10 @@ const SYN={ограбление:["грабеж"],грабеж:["ограблен
 const stem=t=>t.length>6?t.slice(0,-2):t.length>5?t.slice(0,-1):t;
 const toks=q=>norm(q).split(/[^a-zа-я0-9.]+/).filter(Boolean).map(t=>t.replace(/^\.+|\.+$/g,"")).filter(Boolean);
 const isNum=t=>/^\d+(\.\d+)*$/.test(t);
+const natParts=s=>String(s||"").split(".").map(x=>{const n=parseInt(x,10);return Number.isFinite(n)?n:0});
+const cmpCode=(a,b)=>{const A=natParts(a),B=natParts(b);for(let i=0;i<Math.max(A.length,B.length);i++){const d=(A[i]||0)-(B[i]||0);if(d)return d}return String(a).localeCompare(String(b),"ru")};
+const grpKey=g=>{const m=String(g||"").match(/Гл\.?\s*(\d+)/i);return m?+m[1]:9999};
+
 let HLR=null;
 function hl(s){s=String(s);if(!HLR)return esc(s);const n=norm(s);let o="",i=0,m;HLR.lastIndex=0;while((m=HLR.exec(n))){if(!m[0])break;o+=esc(s.slice(i,m.index))+"<mark>"+esc(s.slice(m.index,m.index+m[0].length))+"</mark>";i=m.index+m[0].length}return o+esc(s.slice(i))}
 function search(list,q){
@@ -466,8 +470,9 @@ function render(){
     html=`<div class="grid">${Object.keys(NAME).map(c=>`<button class="ccard" data-open="${c}"><b>${NAME[c]}</b><span>${DESC[c]}</span><small>${IDX.filter(i=>i.c===c).length} записей</small></button>`).join("")}</div>`;
   }else{
     browse=true;
-    const items=IDX.filter(i=>i.c===V.c),gs=[...new Set(items.map(i=>i.g))];
-    if(!gs.includes(V.g))V.g=gs[0];
+    const items=IDX.filter(i=>i.c===V.c).slice().sort((a,b)=>cmpCode(a.n,b.n));
+    const gs=[...new Set(items.map(i=>i.g))].sort((a,b)=>grpKey(a)-grpKey(b)||String(a).localeCompare(String(b),"ru"));
+    if(!gs.includes(V.g))V.g=gs[0]||"";
     $("#nav").innerHTML=gs.map(g=>`<button data-g="${esc(g)}" aria-current="${g===V.g}">${esc(g)}<small>${items.filter(i=>i.g===g).length}</small></button>`).join("");
     html=`<p class="head">${esc(NAME[V.c]+" · "+V.g)}</p>`+items.filter(i=>i.g===V.g).map(i=>card(i,false)).join("");
   }
@@ -1010,7 +1015,7 @@ apply();sync();drawSaved();render();
   function fillGroupDatalist() {
     const dl = $("#e-group-list");
     if (!dl) return;
-    const groups = [...new Set(rows.map(r => r.group_name).filter(Boolean))].sort();
+    const groups = [...new Set(rows.map(r => r.group_name).filter(Boolean))].sort((a,b)=>grpKey(a)-grpKey(b)||String(a).localeCompare(String(b),"ru"));
     dl.innerHTML = groups.map(g => `<option value="${esc(g)}">`).join("");
   }
 
@@ -1043,6 +1048,7 @@ apply();sync();drawSaved();render();
           p: "", f: x.kind, w: x.wanted, m: x.penalty, fn: x.fine
         }));
         IDX.splice(0, IDX.length, ...mapped);
+        IDX.sort((a,b)=>String(a.c).localeCompare(String(b.c))||cmpCode(a.n,b.n)||grpKey(a.g)-grpKey(b.g));
         IDX.forEach(it => {
           it.h = norm([it.n, it.t, it.x, it.p, it.m, it.fn ? "штраф " + it.fn : "", it.w ? "розыск " + it.w : "", it.g, NAME[it.c]].join(" "));
           it.hn = it.h.replace(/(\d)[\s\u00a0\u202f](?=\d{3})/g, "$1");
