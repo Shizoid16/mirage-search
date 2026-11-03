@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirage — импорт законов</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+body{margin:0;padding:30px;background:#0b1020;color:#e8edf7;font:15px Arial,sans-serif}
+main{max-width:1000px;margin:auto}
+section{background:#151e32;padding:22px;border-radius:12px;margin:18px 0}
+select,input,textarea{width:100%;box-sizing:border-box;padding:11px;margin:8px 0;background:#0b1325;color:white;border:1px solid #34415c;border-radius:7px}
+textarea{min-height:130px}
+button{padding:12px 18px;margin:8px 5px 8px 0;border:0;border-radius:7px;background:#899bff;font-weight:bold;cursor:pointer}
+.entry{border:1px solid #34415c;padding:15px;border-radius:8px;margin:12px 0}
+.muted{color:#a3afc5}
+</style>
+</head>
+<body>
+<main>
+<h1>Mirage — импорт законов из PDF</h1>
+<p class="muted">Загрузка PDF, извлечение статей и подготовка данных для импорта.</p>
+
+<section>
+<h2>1. Выбор кодекса</h2>
+<select id="category"></select>
+<input id="pdf" type="file" accept="application/pdf">
+<button onclick="extractPDF()">Извлечь текст</button>
+<p id="status" class="muted">Ожидание PDF.</p>
+</section>
+
+<section>
+<h2>2. Предпросмотр</h2>
+<div id="entries"></div>
+<button onclick="downloadJSON()">Скачать JSON</button>
+</section>
+</main>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const categories = [
+['uk','Уголовный кодекс'],
+['ks','Кодекс об административных правонарушениях'],
+['pk','Процессуальный кодекс'],
+['ak','Административный кодекс'],
+['et','Этический кодекс'],
+['td','Трудовой кодекс'],
+['dk','Дорожный кодекс'],
+['sd','Судебный кодекс'],
+['gs','Гражданский кодекс'],
+['smi','Закон о СМИ'],
+['oh','Охрана'],
+['opg','ОПГ'],
+['usss','Устав'],
+['lspd','LSPD'],
+['adv','Адвокатура'],
+['gt','Государственные тайны'],
+['pp','Правила поведения'],
+['visit','Посещения'],
+['weapon','Оружие'],
+['jur','Юстиция'],
+['gov','Государство'],
+['doc','Документы'],
+['special','Специальные положения'],
+['ng','Национальная гвардия'],
+['sahp','SAHP'],
+['fib','FIB'],
+['ems','EMS']
+];
+
+const categorySelect = document.getElementById('category');
+categories.forEach(([value,label]) => {
+ const option = document.createElement('option');
+ option.value = value;
+ option.textContent = label;
+ categorySelect.appendChild(option);
+});
+
+let entries = [];
+
+function setStatus(text) {
+ document.getElementById('status').textContent = text;
+}
+
+function parseArticles(text) {
+ text = text.replace(/\u00a0/g,' ')
+            .replace(/[ \t]+\n/g,'\n')
+            .trim();
+
+ const regex = /(?:^|\n)\s*(?:Статья|Ст\.?)\s*(\d+(?:\.\d+)*)\s*[.:\-–]?\s*/gi;
+ const matches = [...text.matchAll(regex)];
+
+ if (!matches.length) {
+  return [{
+   code:'1',
+   title:'Текст документа',
+   body:text,
+   kind:'law',
+   wanted:null,
+   penalty:null,
+   fine:null
+  }];
+ }
+
+ return matches.map((match,index) => {
+  const start = match.index + match[0].length;
+  const end = index + 1 < matches.length
+   ? matches[index+1].index
+   : text.length;
+
+  let body = text.slice(start,end).trim();
+  const lines = body.split('\n');
+  const title = lines[0] || `Статья ${match[1]}`;
+
+  if (title.length < 180) body = lines.slice(1).join('\n').trim();
+
+  return {
+   code:match[1],
+   title:title.length < 180 ? title : `Статья ${match[1]}`,
+   body:body || title,
+   kind:'law',
+   wanted:null,
+   penalty:null,
+   fine:null
+  };
+ });
+}
+
+async function extractPDF() {
+ const file = document.getElementById('pdf').files[0];
+ if (!file) return setStatus('Выбери PDF.');
+
+ try {
+  setStatus('Извлечение текста...');
+  const pdf = await pdfjsLib.getDocument({
+   data:new Uint8Array(await file.arrayBuffer())
+  }).promise;
+
+  let text = '';
+
+  for (let i=1;i<=pdf.numPages;i++) {
+   const page = await pdf.getPage(i);
+   const content = await page.getTextContent();
+   text += content.items.map(item=>item.str).join(' ') + '\n';
+  }
+
+  if (text.replace(/\s/g,'').length < 80) {
+   return setStatus('Текстовый слой не найден. Возможно, PDF является сканом. Нужен OCR.');
+  }
+
+  entries = parseArticles(text);
+  renderEntries();
+  setStatus(`Страниц: ${pdf.numPages}. Найдено записей: ${entries.length}. Проверь результат.`);
+ } catch(error) {
+  setStatus('Ошибка: '+error.message);
+ }
+}
+
+function renderEntries() {
+ const container = document.getElementById('entries');
+ container.innerHTML = '';
+
+ entries.forEach((entry,index) => {
+  const div = document.createElement('div');
+  div.className = 'entry';
+
+  const heading = document.createElement('h3');
+  heading.textContent = `Статья ${index+1}`;
+  div.appendChild(heading);
+
+  ['code','title','body'].forEach(field => {
+   const label = document.createElement('label');
+   label.textContent = field === 'code' ? 'Номер' :
+                       field === 'title' ? 'Название' : 'Текст';
+   div.appendChild(label);
+
+   const input = field === 'body'
+    ? document.createElement('textarea')
+    : document.createElement('input');
+
+   input.value = entry[field] || '';
+   input.addEventListener('input',()=>{
+    entries[index][field] = input.value;
+   });
+   div.appendChild(input);
+  });
+
+  container.appendChild(div);
+ });
+}
+
+function downloadJSON() {
+ const data = {
+  category:categorySelect.value,
+  entries:entries
+ };
+
+ const blob = new Blob(
+  [JSON.stringify(data,null,2)],
+  {type:'application/json'}
+ );
+
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'mirage-law-import.json';
+ a.click();
+ URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
